@@ -1,8 +1,43 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import {Box, FormControl, Button, Input, Image, Stack, InputGroup ,Text} from "@chakra-ui/react"
-import PalmTreeSVG from "./palmtree.svg"
+import {Box, FormControl, Button, Input, Stack, InputGroup, Heading, Flex} from "@chakra-ui/react"
+import {LoginHeader} from "./Header";
+import styled from "styled-components";
+
+const StyledFlex = styled(Flex)`
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const StyledInput = styled(Input)`
+  color: #99B080;
+  background-color: #D8DFE9;
+  border: 2px solid #04566E;
+  border-width: 4px;
+  border-radius: 6px;
+  width: 100%;
+  padding: 7px;
+`;
+
+const StyledButton = styled(Button)`
+  color: #04566E;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: transparent;
+  border: 2px solid #04566E;
+  border-radius: 40px;
+  padding: 7px;
+  width: 100%;
+`;
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -32,53 +67,45 @@ const Register = () => {
   };
 
   return(
-    <Box minHeight={"100vh"} display="flex" justifyContent="center" alignItems="center" flexDirection={"row"} backgroundColor={"#F9B572"}>
-      <Box display={"flex"} alignItems={"center"} justifyContent={"center"} flexDirection={"column"}>
-        <Box display={"flex"}>
-          <Text fontSize="30px" fontWeight="bold" color="#748E63">Welcome to</Text>
-          <Text fontSize="30px" fontWeight="bold" color="#99B080" marginLeft={10}>TravelMate</Text>
-        </Box>
-        <Image src={PalmTreeSVG} alt="Palm Tree" maxHeight={"80vh"} mt={4} color="#748E63" css={{ filter: "invert(50%) sepia(100%) saturate(1000%)" }} />
-      </Box>
-      <Box height={"100%"} width={"40%"} padding={"20px"} backgroundColor={"#99B080"} borderRadius={20} display={"flex"} alignContent={"center"} justifyContent={"center"}>
+    <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">
+      <LoginHeader />
+      <StyledFlex>
+        <Heading ml="1rem" as="h1" size="lg" color="#B4D330">Register</Heading>
           <form onSubmit={handleSubmit} style={{ maxWidth: "300px", width: "100%" }}>
             <Stack spacing={10} width={"100%"}>
               <FormControl isRequired>
-                  <InputGroup>
-                    {/*<InputLeftElement children={<Icon name='info'/>}/>*/}
-                    <Input type='email' placeholder='email' color={"#99B080"} backgroundColor={"#FAF8ED"} borderColor={"#748E63"} value={email} onChange={(e) => setEmail(e.target.value)} aria-label='Email' borderWidth={4} borderRadius={6} width={"100%"} padding={"7px"}/>
-                  </InputGroup>
-                </FormControl>
-                <FormControl isRequired>
-                  <InputGroup>
-                    {/*<InputLeftElement children={<Icon name='info'/>}/>*/}
-                    <Input type='text' placeholder='username' color={"#99B080"} backgroundColor={"#FAF8ED"} borderColor={"#748E63"} value={username} onChange={(e) => setUsername(e.target.value)} aria-label='Username' borderWidth={4} borderRadius={6} width={"100%"} padding={"7px"}/>
-                  </InputGroup>
-                </FormControl>
-                <FormControl isRequired>
-                  <InputGroup>
-                    {/*<InputLeftElement children={<Icon name='lock'/>}/>*/}
-                    <Input type='password' placeholder='password' color={"#99B080"} backgroundColor={"#FAF8ED"} borderColor={"#748E63"} value={password} onChange={(e) => setPassword(e.target.value)} aria-label='Password' borderWidth={4} borderRadius={6} width={"100%"} padding={"7px"}/>
-                  </InputGroup>
-                </FormControl>
-                <FormControl isRequired>
-                  <InputGroup>
-                    {/*<InputLeftElement children={<Icon name='lock'/>}/>*/}
-                    <Input type='password' placeholder='confirm password' color={"#99B080"} backgroundColor={"#FAF8ED"} borderColor={"#748E63"} value={confirmpassword} onChange={(e) => setConfirmPaswword(e.target.value)} aria-label='ConfirmPassword' borderWidth={4} borderRadius={6} width={"100%"} padding={"7px"}/>
-                  </InputGroup>
-                </FormControl>
-                <Button type='submit' color={"green"} backgroundColor={"#FAF8ED"} borderColor={"#748E63"} borderWidth={4} borderRadius={6} padding={"7px"}> Sign up</Button>
-                <Box alignSelf={"center"}>
-                  <Link to={"/login"} style={{ textDecoration: "none" }}>
-                    {/*<Button type='button' color={"green"} backgroundColor={"#FAF8ED"} borderColor={"#748E63"} borderWidth={4} borderRadius={6} padding={"7px"}> Go to Login</Button>*/}
-                    <Text color={"#748E63"} fontSize={"16px"} fontWeight={"bold"}>Go to Login</Text>
-                  </Link>
-                </Box>
-            </Stack>
-          </form>
-        </Box>
-    </Box>
-  );
+                <InputGroup>
+                  <StyledInput type='email' placeholder='email' value={email} onChange={(e) => setEmail(e.target.value)} aria-label='Email'/>
+                </InputGroup>
+              </FormControl>
+              <FormControl isRequired>
+                <InputGroup>
+                  <StyledInput type='text' placeholder='username' value={username} onChange={(e) => setUsername(e.target.value)} aria-label='Username'/>
+                </InputGroup>
+              </FormControl>
+              <FormControl isRequired>
+                <InputGroup>
+                  <StyledInput type='password' placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} aria-label='Password'/>
+                </InputGroup>
+              </FormControl>
+              <FormControl isRequired>
+                <InputGroup>
+                  <StyledInput type='password' placeholder='confirm password' value={confirmpassword} onChange={(e) => setConfirmPaswword(e.target.value)} aria-label='ConfirmPassword'/>
+                </InputGroup>
+              </FormControl>
+            <Flex justifyContent="space-evenly">
+              <StyledButton type="submit"> Sign up </StyledButton>
+              <Box alignSelf="center" width="100%">
+                <Link to="/login" style={{ textDecoration: "none" }}>
+                  <StyledButton> Sign in </StyledButton>
+                </Link>
+              </Box>
+            </Flex>
+          </Stack>
+        </form>
+      </StyledFlex>
+  </Box>
+);
 };
 
 export default Register;
