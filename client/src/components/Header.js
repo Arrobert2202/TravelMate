@@ -19,11 +19,11 @@ const StyledLink = styled(Link)`
   align-items: center;
 `;
 
-const NavItem = ({ href, children }) => {
+const NavItem = ({ href, icon, children }) => {
   return (
     <Flex as="li">
       <StyledLink href={href} className="flex items-center gap-1 hover:text-neutral-400 transition-all">
-        <Icon boxSize={5} as="span" />
+        {icon}
         {children}
       </StyledLink>
     </Flex>
@@ -78,26 +78,22 @@ export function Header() {
   ];
 
   return (
-    <Flex align="center" justify="space-between" p={4} bg="#022831">
+    <Flex align="center" justify="space-between" padding="1rem" bg="#022831" marginTop="1rem">
       <Heading ml="1rem" as="h1" size="lg" color="#B4D330">TravelMate</Heading>
       {isMobile ? (
         <MobileMenu isOpen={isOpen} toggleMenu={toggleMenu} menuItems={menuItems} />
       ) : (
         <Flex marginRight="1 rem" as="ul" className="hidden lg:flex lg:items-center gap-5 text-sm">
-          <NavItem href="/login">
-            <CgProfile />
+          <NavItem href="/login" icon={<CgProfile />}>
             Profile
           </NavItem>
-          <NavItem href="/dashboard">
-            <FaHome />
+          <NavItem href="/dashboard" icon={<FaHome />}>
             Home
           </NavItem>
-          <NavItem href="#">
-            <HiUserGroup />
+          <NavItem href="#" icon={<HiUserGroup/>}>
             Groups
           </NavItem>
-          <NavItem href="#">
-            <FiStar />
+          <NavItem href="#" icon={<FiStar/>}>
             Recommendations
           </NavItem>
         </Flex>

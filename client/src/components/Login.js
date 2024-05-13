@@ -26,14 +26,13 @@ const StyledInput = styled(Input)`
   border-width: 4px;
   border-radius: 6px;
   width: 100%;
-  padding: 7px;
 `;
 
 const StyledButton = styled(Button)`
   color: #04566E;
   font-size: 16px;
   font-weight: bold;
-  background-color: transparent;
+  background-color: ;
   border: 2px solid #04566E;
   border-radius: 40px;
   padding: 7px;
@@ -72,9 +71,9 @@ const Login = () => {
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">
       <LoginHeader />
       <StyledFlex>
-        <Heading ml="1rem" as="h1" size="lg" color="#B4D330">Login</Heading>
+        <Heading mb="1rem" ml="1rem" as="h1" size="lg" color="#B4D330">Login</Heading>
         <form onSubmit={handleSubmit} style={{ maxWidth: "300px", width: "100%" }}>
-          <Stack spacing={10} width={"100%"}>
+          <Stack spacing={5} width={"100%"}>
             <FormControl isRequired>
               <InputGroup>
                 <StyledInput type='text' placeholder='username' value={username} onChange={(e) => setUsername(e.target.value)} aria-label='Username'/>
@@ -86,7 +85,7 @@ const Login = () => {
               </InputGroup>
             </FormControl>
             <Flex justifyContent="space-evenly">
-              <StyledButton type="submit"> Sign in </StyledButton>
+              <StyledButton type="submit" variant="outline"> Sign in </StyledButton>
               <Box alignSelf="center" width="100%">
                 <Link to="/register" style={{ textDecoration: "none" }}>
                   <StyledButton> Sign up </StyledButton>

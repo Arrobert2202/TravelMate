@@ -4,13 +4,14 @@ import Register from './components/Register'
 import Dashboard from './components/Dashboard';
 import { AuthProvider } from './components/AuthContext';
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
+import { ChakraProvider } from '@chakra-ui/react';
 
 function App(){
 
   const [backendData, setBackendData] = useState([{}])
 
   useEffect(() => {
-    fetch("/api/auth")
+    fetch("/api")
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -30,16 +31,18 @@ function App(){
   }, []);
 
   return(
-   <AuthProvider>
-    <Router>
-      <Routes>
-        <Route path="/" exact Component={Login}/>
-        <Route path="/login" Component={Login}/>
-        <Route path='/register' Component={Register}/>
-        <Route path="/dashboard" Component={Dashboard}/>
-      </Routes>
-    </Router>
-   </AuthProvider>
+    <ChakraProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" exact Component={Login}/>
+            <Route path="/login" Component={Login}/>
+            <Route path='/register' Component={Register}/>
+            <Route path="/dashboard" Component={Dashboard}/>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ChakraProvider>
   )
 }
 
