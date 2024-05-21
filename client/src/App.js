@@ -5,40 +5,20 @@ import Dashboard from './components/Dashboard';
 import { AuthProvider } from './components/AuthContext';
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
+import io from 'socket.io-client';
+
+const socket = io.connect("http://localhost:5000")
 
 function App(){
-
-  const [backendData, setBackendData] = useState([{}])
-
-  useEffect(() => {
-    fetch("/api")
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setBackendData(data);
-      })
-      .catch(error => {
-        if (error.response && error.response.status === 404) {
-          console.error("Ruta API nu a fost găsită");
-        } else {
-          console.error("Eroare la obținerea datelor:", error);
-        }
-      });
-  }, []);
-
   return(
     <ChakraProvider>
       <AuthProvider>
         <Router>
           <Routes>
-            <Route path="/" exact Component={Login}/>
-            <Route path="/login" Component={Login}/>
-            <Route path='/register' Component={Register}/>
-            <Route path="/dashboard" Component={Dashboard}/>
+          <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </Router>
       </AuthProvider>

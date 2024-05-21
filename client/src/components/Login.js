@@ -2,7 +2,7 @@ import React, { useState, useContext} from "react";
 import axios from "axios";
 import { AuthContext } from "./AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import {Box, FormControl, Button, Input, Stack, InputGroup, Flex, Heading} from "@chakra-ui/react"
+import {Box, FormControl, FormErrorMessage, Button, Input, Stack, InputGroup, Flex, Heading} from "@chakra-ui/react"
 import { LoginHeader } from "./Header";
 import styled from "styled-components";
 
@@ -93,6 +93,7 @@ const Login = () => {
               </Box>
             </Flex>
           </Stack>
+          {errorMessage && <FormErrorMessage>{errorMessage}</FormErrorMessage>}
         </form>
       </StyledFlex>
     </Box>

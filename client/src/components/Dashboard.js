@@ -4,25 +4,32 @@ import { Navigate } from "react-router-dom";
 import { Header } from "./Header";
 import { Box, Heading, Text, ChakraProvider, Image, Tooltip} from "@chakra-ui/react";
 import { Provider, Carousel, LeftButton, RightButton} from "chakra-ui-carousel";
+import api from '../api';
 
 function Dashboard() {
-  const {token, loading} = useContext(AuthContext);
+  const {token, loading, handleTokenExpired} = useContext(AuthContext);
   const [topDestinations, setTopDestinations] = useState([]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      try{
-        const response = await fetch('/api/topdestinations');
-        const data = await response.json();
-        setTopDestinations(data);
-      } catch(error) {
+      try {
+        const response = await api.get('/topdestinations', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setTopDestinations(response.data);
+      } catch (error) {
         console.error("Error getting the top destinations: ", error);
+        if (error.response && error.response.status === 401) {
+          handleTokenExpired();
+        }
       }
     };
 
     fetchData();
-  }, [topDestinations]);
+  }, [token, handleTokenExpired]);
 
   if(loading){
     return null;

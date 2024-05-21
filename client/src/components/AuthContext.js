@@ -11,9 +11,14 @@ export const AuthProvider = ({children}) => {
     setToken(storedToken);
     setLoading(false);
   }, []);
+  
+  const handleTokenExpired = () => {
+    setToken(null);
+    localStorage.removeItem('token');
+  };
 
   return (
-    <AuthContext.Provider value={{token, setToken, loading}}>
+    <AuthContext.Provider value={{token, setToken, loading, handleTokenExpired}}>
       {children}
     </AuthContext.Provider>
   );

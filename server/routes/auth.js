@@ -3,7 +3,12 @@ const router = express.Router();
 const User = require('../models/userSchema');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 require("dotenv").config();
+
+const generateTokens = (userId) => {
+  return jwt.sign({ id: userId}, process.env.SECRET_KEY, { expiresIn: '10s' });
+};
 
 router.post('/register', async (req, res) =>{
   try{
@@ -19,17 +24,17 @@ router.post('/register', async (req, res) =>{
     const newUser = new User({
       email,
       username,
-      password: hash_password
+      password: hash_password,
+      groups: []
     });
     
     const savedUser = await newUser.save();
-    res.json({
-      message: "User registered successfully",
-      user: {
-        _id: savedUser._id,
-        email: savedUser.email,
-        username: savedUser.username
-      }
+    const token = generateTokens(savedUser._id);
+
+    res.status(200).json({
+      status: "success",
+      message: "You have successfully registered.",
+      token: token,
     });
   } catch(error){
     console.error(error);
@@ -50,14 +55,29 @@ router.post('/login', async (req, res) =>{
       if(!isValidPassword){
         return res.status(401).send("Invalid username or password.");
       }
-      
-      const token = jwt.sign({userId: user.id}, process.env.SECRET_KEY);
 
-      res.send({token});
+      const token = generateTokens(user._id);
+
+      res.status(200).json({
+        status: "success",
+        message: "You have successfully logged in.",
+        token: token,
+      });
     } catch(error) {
       console.error(error);
       res.status(500).json({ error: 'Login failed'});
     }
 });
 
-module.exports = router
+router.post('/logout', auth, async (req, res) => {
+  try{ 
+    res.status(200).json({
+      message: "Logout successful"
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(200).json({error: 'Logout failed.'});
+  }
+});
+
+module.exports = router;

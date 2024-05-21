@@ -1,3 +1,6 @@
+const jwt = require('jsonwebtoken');
+require("dotenv").config();
+
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt');
@@ -18,7 +21,11 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: true
-    }
+    },
+    groups: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Group'
+    }]
   }
 );
 

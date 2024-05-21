@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TopDestination = require('../models/topDestinationSchema');
+const auth = require('../middleware/auth');
 
 router.post('/', async (req, res) =>{
   try{
@@ -22,7 +23,7 @@ router.post('/', async (req, res) =>{
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try{
     const destionations = await TopDestination.find();
 
