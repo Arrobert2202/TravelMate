@@ -14,7 +14,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get('/topdestinations', {
+        const response = await api.get('/destination/top-destinations', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -31,13 +31,13 @@ function Dashboard() {
     fetchData();
   }, [token, handleTokenExpired]);
 
-  if(loading){
-    return null;
-  }
+  // if(loading){
+  //   return null;
+  // }
 
-  if(!token){ 
-    return <Navigate to="/login" replace />;
-  }
+  // if(!token){ 
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">

@@ -1,17 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const Group = require('../models/groupSchema');
- 
-router.post('/create', async (req, res) => {
+const User = require('../models/userSchema');  
+const auth = require('../middleware/auth');
+
+router.post('/create', auth, async (req, res) => {
+  const { name, country, state, city, members, admins} = req.body;
+
   try{
-    const { name, members, destination, admins} = req.body;
+    const user = req.user._id;
+
+    const allMembers = [...members, {user: user, unreadMessages: 0}];
 
     const newGroup = new Group({
       name,
-      members,
-      destination,
-      messages,
-      admins
+      destination: {
+        country,
+        state,
+        city
+      },
+      members: allMembers,
+      admins: admins
     });
     
     const savedGroup = await newGroup.save();
@@ -23,4 +32,17 @@ router.post('/create', async (req, res) => {
   }
 });
 
-router.get('/user-groups', async (req, res) => {});
+router.get('/user-groups', auth, async (req, res) => {
+  try{
+    const user = await User.findById(req.user._id).populate('groups');
+    if(!user){
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    res.status(200).json(user.groups);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `Failed to get user's groups.` });
+  }
+});
+
+module.exports = router;

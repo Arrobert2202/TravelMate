@@ -7,8 +7,9 @@ const connectDB = require("./db");
 require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
-const topdestinationsRoutes = require("./routes/topDestinations");
-//const groupRoutes = require("./routes/groups");
+const userRoutes = require("./routes/users");
+const topdestinationsRoutes = require("./routes/destination");
+const groupRoutes = require("./routes/groups");
 
 const app = express();
 const server = http.createServer(app);
@@ -23,8 +24,9 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
-app.use('/api/topdestinations', topdestinationsRoutes);
-//app.use('/api/groups', groupRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/destination', topdestinationsRoutes);
+app.use('/api/groups', groupRoutes);
 
 io.on('connection', (socket) =>{
   console.log("New user connected");

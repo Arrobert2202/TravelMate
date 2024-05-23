@@ -7,7 +7,7 @@ const auth = require('../middleware/auth');
 require("dotenv").config();
 
 const generateTokens = (userId) => {
-  return jwt.sign({ id: userId}, process.env.SECRET_KEY, { expiresIn: '10s' });
+  return jwt.sign({ id: userId}, process.env.SECRET_KEY, { expiresIn: '1h' });
 };
 
 router.post('/register', async (req, res) =>{

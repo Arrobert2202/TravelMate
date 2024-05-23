@@ -46,11 +46,15 @@ const groupSchema = new Schema({
   },
   members: [memberSchema],
   destination: {
-    city: {
+    country: {
       type: String,
       required: true
     },
-    country: {
+    state: {
+      type: String,
+      required: true
+    },
+    city: {
       type: String,
       required: true
     }

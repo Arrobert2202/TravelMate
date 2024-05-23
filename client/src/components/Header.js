@@ -22,7 +22,7 @@ const StyledLink = styled(Link)`
 const NavItem = ({ href, icon, children }) => {
   return (
     <Flex as="li">
-      <StyledLink href={href} className="flex items-center gap-1 hover:text-neutral-400 transition-all">
+      <StyledLink to={href} className="flex items-center gap-1 hover:text-neutral-400 transition-all">
         {icon}
         {children}
       </StyledLink>
@@ -73,7 +73,7 @@ export function Header() {
   const menuItems = [
     { path: "/dashboard", text: "Profile", icon: <CgProfile /> },
     { path: "/dashboard", text: "Home", icon: <FaHome /> },
-    { path: "/dashboard", text: "Groups", icon: <HiUserGroup /> },
+    { path: "/groups", text: "Groups", icon: <HiUserGroup /> },
     { path: "/dashboard", text: "Recommendations", icon: <FiStar /> }
   ];
 
@@ -90,7 +90,7 @@ export function Header() {
           <NavItem href="/dashboard" icon={<FaHome />}>
             Home
           </NavItem>
-          <NavItem href="#" icon={<HiUserGroup/>}>
+          <NavItem href="/groups" icon={<HiUserGroup/>}>
             Groups
           </NavItem>
           <NavItem href="#" icon={<FiStar/>}>
