@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {Box, FormControl, FormErrorMessage, Button, Input, Stack, InputGroup, Flex, Heading} from "@chakra-ui/react"
 import { LoginHeader } from "./Header";
 import styled from "styled-components";
+import { SocketContext } from './SocketContext';
 
 const StyledFlex = styled(Flex)`
   flex-direction: column;
@@ -45,6 +46,8 @@ const Login = () => {
   const [errorMessage, setErrorMessage] =useState(null);
   const {setToken} = useContext(AuthContext);
   const navigate = useNavigate();
+  const socket = useContext(SocketContext);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
@@ -52,8 +55,12 @@ const Login = () => {
         username,
         password
       });
-      setToken(response.data.token);
-      localStorage.setItem("token", response.data.token);
+      const token = response.data.token;
+      setToken(token);
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", response.data.userId);
+      localStorage.setItem("username", response.data.username);
+      console.log("Token set: ", token);
       navigate("/dashboard");
     } catch(error){ 
       console.error("Authentication failed:", error);
@@ -85,7 +92,7 @@ const Login = () => {
               </InputGroup>
             </FormControl>
             <Flex justifyContent="space-evenly">
-              <StyledButton type="submit" variant="outline"> Sign in </StyledButton>
+              <StyledButton type="submit"> Sign in </StyledButton>
               <Box alignSelf="center" width="100%">
                 <Link to="/register" style={{ textDecoration: "none" }}>
                   <StyledButton> Sign up </StyledButton>

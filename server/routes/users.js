@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require('../models/userSchema');
 
 router.post('/validate', async (req, res) => {
-  const { username } =req.body;
+  const { username } = req.body;
 
   try{
     const user = await User.findOne({ username });

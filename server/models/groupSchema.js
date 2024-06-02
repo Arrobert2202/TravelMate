@@ -2,9 +2,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const memberSchema = new Schema({
-  user: {
+  userId: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  username: {
+    type: String
   },
   unreadMessages: {
     type: Number,
@@ -13,10 +16,20 @@ const memberSchema = new Schema({
 }, { _id: false });
 
 
-const messageSchema = new Schema({
-  author: {
+const authorSchema = new Schema({
+  id: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  username: {
+    type: String
+  }
+}, { _id: false });
+
+const messageSchema = new Schema({
+  author: {
+    type: authorSchema,
+    required: false
   },
   content: {
     type: String
@@ -61,9 +74,18 @@ const groupSchema = new Schema({
   },
   messages: [messageSchema],
   admins: [{
+    id: {
     type: Schema.Types.ObjectId,
     ref: 'User'
-  }]
+  },
+  username: {
+    type: String
+  }
+}],
+  lastModified: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 const Group = mongoose.model('Group', groupSchema);

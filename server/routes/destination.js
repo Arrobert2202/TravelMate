@@ -3,6 +3,7 @@ const router = express.Router();
 const TopDestination = require('../models/topDestinationSchema');
 const auth = require('../middleware/auth');
 const axios = require('axios');
+require("dotenv").config();
 
 router.post('/top-destinations', async (req, res) =>{
   try{
@@ -63,6 +64,37 @@ router.post('/cities', auth, async(req, res) => {
     const cities = response.data.data;
     res.status(200).json(cities);
   } catch (error){
+    res.status(500).json({error: error.message});
+  }
+});
+
+router.post('/attractions', auth, async (req, res) => {
+  const { city } = req.body;
+  if (!city) {
+    return res.status(400).send({ error: 'City is required' });
+  }
+
+  try{
+    const response = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(`${city}+point+of+interest`)}&language=en&key=${process.env.GOOGLE_API_KEY}`);
+    if (response.data.status !== 'OK'){
+      return res.status(500).send({error: 'Error fetching data from Places API'});
+    }
+
+    const attractions = response.data.results.map(attraction => {
+      const { formatted_address, name, photos, rating, user_ratings_total} = attraction;
+
+      const photoUrl = photos && photos.length > 0 ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photos[0].photo_reference}&key=${process.env.GOOGLE_API_KEY}` : null;
+      return {
+        name,
+        address: formatted_address,
+        rating,
+        user_ratings_total,
+        photoUrl
+      };
+    });
+
+    res.status(200).json(attractions);
+  } catch (error) {
     res.status(500).json({error: error.message});
   }
 });

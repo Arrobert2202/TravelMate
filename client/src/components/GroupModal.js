@@ -1,12 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { AuthContext } from './AuthContext';
-import { Header } from './Header';
-import { Box, Heading, Flex, Text, Button, Center, Modal, ModalOverlay, ModalContent, ModalCloseButton, FormControl, FormLabel, ModalBody, ModalHeader, Input, Select, useDisclosure, IconButton } from '@chakra-ui/react';
+import { Box, Flex, Text, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, FormControl, FormLabel, ModalBody, ModalHeader, Input, Select, IconButton, useRangeSlider } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
 import api from '../api';
-import axios from 'axios';
+import React, { useContext, useEffect, useState } from 'react';
 
-const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
+export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpired, addNewGroup, socket, group}) => {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -15,12 +12,14 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
   const [selectedCity, setSelectedCity] = useState('');
   const [groupName, setGroupName] = useState('');
   const [memberName, setMemberName] = useState('');
+  const [adminName, setAdminName] = useState('');
   const [members, setMembers] = useState([]);
-  const [error, setError] = useState('');
-
-  const { user } = useContext(AuthContext);
+  const [memberError, setMemberError] = useState('');
+  const [adminError, setAdminError] = useState('');
+  const [admins, setAdmins] = useState([]);
 
   useEffect(() => {
+    console.log(localStorage.getItem("username"));
     const fetchCountries = async () => {
       try{
         const response = await api.get('/destination/countries', {
@@ -39,6 +38,21 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
     fetchCountries();
   }, [token, handleTokenExpired]);
 
+  useEffect(() => {
+    if(isEditing){
+      setGroupName(group.name);
+      setMembers(group.members);
+      setSelectedCountry(group.destination.country);
+      fetchStates(selectedCountry);
+      setSelectedState(group.destination.state);
+      fetchCities(selectedCountry, selectedState);
+      setSelectedCity(group.destination.city);
+      setAdmins(group.admins);
+      setAdminError('');
+      setMemberError('');
+    }
+  }, [isOpen, group]);
+
   const fetchStates = async (country) => {
     try{
       const response = await api.post('/destination/states', { country }, {
@@ -48,7 +62,11 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
       });
       setStates(response.data);
       setCities([]);
-      setSelectedState('');
+      if(group){
+        setSelectedState(group.destination.state);
+      } else {
+        setSelectedState('');
+      }
       setSelectedCity('');
     } catch (error) {
       console.error("Error getting the states: ", error);
@@ -66,7 +84,11 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
         }
       });
       setCities(response.data);
-      setSelectedCity('');
+      if(group) {
+        setSelectedCity(group.destination.city);
+      } else {
+        setSelectedCity('');
+      }
     } catch (error) {
       console.error("Error getting the countries: ", error);
       if(error.response && error.response.stats === 401){
@@ -97,44 +119,95 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
 
   const handleAddMember = async () => {
     try {
+      const isMemberAlreadyAdded = members.some(member => member.username === memberName);
+      if(isMemberAlreadyAdded || memberName === localStorage.getItem("username")){
+        setMemberError('User already in the list');
+        return;
+      }
+
       const response = await api.post('/users/validate', {username: memberName}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
+      
       if(response.data.exists) {
-        setMembers([...members, { user: response.data.userId, username: memberName}]);
+        setMembers([...members, { userId: response.data.userId, username: memberName}]);
         setMemberName('');
-        setError('');
+        setMemberError('');
       } else {
-        setError('User not found');
+        setMemberError('User not found');
       }
     } catch(error) {
       console.error("Error validating the user: ", error);
       if(error.response && error.response.status === 401){
         handleTokenExpired();
       } else {
-        setError('An error occurred while validating the user');
+        setMemberError('An error occurred while validating the user');
       }
     }
   };
 
+  const handleAddAdmin = async () => {
+    try {
+      const isAdminAlreadyAdded = admins.some(admin => admin.username === adminName);
+      if(isAdminAlreadyAdded){
+        setAdminError('Already an admin');
+        return;
+      }
+
+      const response = await api.post('/users/validate', {username: memberName}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if(response.data.exists) {
+        setAdmins([...admins, { id: response.data.userId, username: memberName}]);
+        setAdminName('');
+        setAdminError('');
+      } else {
+        setAdminError('User not found');
+        return;
+      }
+
+      const isMember = members.some(member => member.username === adminName);
+      if(!isMember){
+        setAdminError('Not a member');
+        return;
+      }
+    } catch(error) {
+      console.error("Error validating the user: ", error);
+      if(error.response && error.response.status === 401){
+        handleTokenExpired();
+      } else {
+        setAdminError('An error occurred while validating the user');
+      }
+    }
+  };
+  
   const handleSubmit = async () => {
     try {
+      console.log("members: ", members);
+      const memberIds = members.map(member => member.userId);
       const newGroup = {
         name: groupName,
         country: selectedCountry,
         state: selectedState,
         city: selectedCity,
-        members: members.map(member => ({ user: member.user, unreadMessages: 0})),
-        admins: [user._id]
+        members: [...members, { userId: localStorage.getItem("userId"), username: localStorage.getItem("username")}],
+        message: "Welcome to your next trip!!",
+        admins: [{ id: localStorage.getItem("userId"), username: localStorage.getItem("username")}]
       };
       const response = await api.post('/groups/create', newGroup, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log('Group created:', response.data);
+      const group = response.data;
+      console.log('Group created:', group);
+      socket.emit('receiveNewGroup', group);
+      addNewGroup(response.data); 
       onClose();
     } catch (error) {
       console.error("Error creating the group: ", error);
@@ -142,13 +215,35 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
   };
 
   const handleRemoveMember = (username) => {
-    setMembers(members.filter(member => member.username != username));
-  }
+    setMembers(members.filter(member => member.username !== username));
+  };
+
+  const handleRemoveAdmin = (username) => {
+    setAdmins(admins.filter(admin => admin.username !== username ));
+  };
+
+  const handleClose = () => {
+    if(isEditing){
+      onClose();
+    } else {
+      setGroupName('');
+      setMemberName('');
+      setAdminName('');
+      setAdminError('');
+      setMemberError('');
+      setAdmins([]);
+      setMembers([]);
+      setSelectedCountry('');
+      setSelectedState('');
+      setSelectedCity('');
+      onClose();
+    }
+  };
 
   return(
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       isCentered
       motionPreset="scale"
     >
@@ -156,8 +251,8 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
       bg='blackAlpha.300'
       backdropFilter='blur(10px)'
       />
-      <ModalContent>
-        <ModalHeader>Create a new group</ModalHeader>
+      <ModalContent maxHeight="90vh" overflow="auto">
+        <ModalHeader>{isEditing ? "Edit group" : "Create a new group" }</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl mt={4}>
@@ -192,32 +287,58 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
             </FormControl>
           </Box>
           <FormControl mt={4}>
-            <FormLabel>Add Members</FormLabel>
+            <FormLabel>Add member</FormLabel>
             <Input placeholder='Username' value={memberName} onChange={(e) => setMemberName(e.target.value)} />
-            <Button mt={2} onClick={handleAddMember}>Add Member</Button>
-            {error && <Text color="red">{error}</Text>}
+            <Button mt={2} onClick={handleAddMember}>Add member</Button>
+            {memberError && <Text color="red">{memberError}</Text>}
           </FormControl>
           <Box mt={4}>
             <Text as='b'>Members:</Text>
             <Flex wrap="wrap" maxWidth="100%">
               {members.map((member, index) => (
                 <Flex key={index} alignItems="center" m={1} p={2} borderWidth="1px" borderRadius="md">
-                <Text mr={2}>{member.username}</Text>
-                <IconButton
-                  aria-label="Remove member"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  onClick={() => handleRemoveMember(member.username)}
-                />
+                  <Text mr={2}>{member.username}</Text>
+                  <IconButton
+                    aria-label="Remove member"
+                    icon={<CloseIcon />}
+                    size="sm"
+                    onClick={() => handleRemoveMember(member.username)}
+                  />
               </Flex>
               ))}
             </Flex>
           </Box>
+          {isEditing && (
+            <div>
+              <FormControl mt={4}>
+                <FormLabel>Add admin</FormLabel>
+                <Input placeholder='Username' value={adminName} onChange={(e) => setAdminName(e.target.value)} />
+                <Button mt={2} onClick={handleAddAdmin}>Add admin</Button>
+                {adminError && <Text color="red">{adminError}</Text>}
+              </FormControl>
+              <Box mt={4}>
+                <Text as='b'>Admins:</Text>
+                <Flex wrap="wrap" maxWidth="100%">
+                  {admins.map((admin, index) => (
+                    <Flex key={index} alignItems="center" m={1} p={2} borderWidth="1px" borderRadius="md">
+                      <Text mr={2}>{admin.username}</Text>
+                      <IconButton
+                        aria-label="Remove admin"
+                        icon={<CloseIcon />}
+                        size="sm"
+                        onClick={() => handleRemoveAdmin(admin.username)}
+                      />
+                    </Flex>
+                  ))}
+                </Flex>
+              </Box>
+            </div>
+          )}
           <Box display="flex" justifyContent="space-between">
             <Button colorScheme="blue" mr={3} onClick={handleSubmit} mt={4}>
               Save
             </Button>
-            <Button onClick={onClose} mt={4}>Cancel</Button>
+            <Button onClick={handleClose} mt={4}>Cancel</Button>
           </Box>
         </ModalBody>
       </ModalContent>
@@ -225,60 +346,3 @@ const GroupModal = ({isOpen, onClose, token, handleTokenExpired}) => {
   );
 };
 
-function Groups() {
-  const { token, loading, handleTokenExpired } = useContext(AuthContext);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [ groups,  setGroups ] = useState([]); 
-
-  useEffect(() => {
-    const fetchData = async() => {
-      try{
-        const response = await api.get('/groups/user-groups', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setGroups(response.data);
-      } catch(error) {
-        console.error("Error getting the groups: ", error);
-        if(error.response && error.response.status === 401){
-          handleTokenExpired();
-        }
-      }
-    };
-    fetchData();
-  }, [token, handleTokenExpired]);
-
-  return(
-    <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">
-      <Header />
-      <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginRight="2rem" marginTop="4rem">
-        <Heading as="h3" color="#D8DFE9">Your groups</Heading>
-        <Button onClick={onOpen}> Create group </Button>
-        <GroupModal isOpen={isOpen} onClose={onClose} token={token} handleTokenExpired={handleTokenExpired}/>
-      </Box>
-      <Box flex="1" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
-        {groups.length === 0 ? (
-          <Center width="100%" height="100%">
-            <Heading as="h4" color="#D8DFE9">
-              No Groups Available
-            </Heading>
-          </Center>
-        ) : (
-          <Flex direction="row" minWidth="max-content" gap={4}>
-            {groups.map((group, index) => (
-              <Box
-                key={index}
-                p={4}
-              >
-                <Text>group.name</Text>
-              </Box> 
-            ))}
-          </Flex>
-        )}
-      </Box>
-    </ Box>
-  );
-};
-
-export default Groups;

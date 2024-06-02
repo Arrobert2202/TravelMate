@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
+const jwt = require('jsonwebtoken');
 const { Server } = require("socket.io");
 const connectDB = require("./db");
 require("dotenv").config();
@@ -10,15 +11,17 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const topdestinationsRoutes = require("./routes/destination");
 const groupRoutes = require("./routes/groups");
+const socketAuth = require("./middleware/socket");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: "http://localhost:3000",
     methods: ['GET', 'POST']
   }
 });
+const socketUser = {};
 connectDB();
 
 app.use(cors());
@@ -28,26 +31,29 @@ app.use('/api/users', userRoutes);
 app.use('/api/destination', topdestinationsRoutes);
 app.use('/api/groups', groupRoutes);
 
-io.on('connection', (socket) =>{
-  console.log("New user connected");
+io.use(socketAuth);
 
-  socket.on('joinGroup', (groupId) => {
-    socket.join(groupId);
-    console.log(`User joined group ${groupId}`);
+io.on('connection', (socket) => {
+  console.log("New user connected", socket.username);
+
+  socket.on('receiveNewGroup', (newGroup) => {
+    console.log(socket.username);
+    console.log("New group: ", newGroup);
+    io.sockets.sockets.forEach((connSocket) => {
+      if (newGroup.members.some(member => member.userId === connSocket.userId.toString())) {
+        connSocket.join(newGroup._id);
+      }
+    });
+    io.to(newGroup._id).emit('newGroup', newGroup);
   });
 
-  socket.on('leaveGroup', (groupId) => {
-    socket.leave(groupId);
-    console.log(`User left group ${groupId}`);
-  });
-
-  socket.on('sendMessage', (message) => {
-    const groupId = message.groupId;
-    io.to(groupId).emit('recevieMessage', message);
+  socket.on('sendNewMessage', (data) => {
+    const { groupId, newMessage } = data;
+    io.to(groupId).emit('newMessage', { groupId, newMessage });
   });
 
   socket.on('disconnect', () => {
-    console.log("A user disconnected")
+    console.log(`User ${socket.userId} disconnected`);
   });
 });
 
@@ -55,4 +61,4 @@ server.listen(process.env.PORT, () =>{
   console.log(`Server is listening on port ${process.env.PORT}`);
 });
 
-module.exports = { app, server, io}
+module.exports = { app, server, io, socketUser};

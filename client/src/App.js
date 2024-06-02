@@ -1,31 +1,33 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useContext} from 'react';
 import Login from './components/Login';
 import Register from './components/Register'
 import Dashboard from './components/Dashboard';
-import Groups from './components/Group';
-import { AuthProvider } from './components/AuthContext';
+import Groups from './components/Groups';
+import GroupChat from './components/GroupChat';
+import { AuthContext, AuthProvider } from './components/AuthContext';
+import { SocketContext, SocketProvider } from './components/SocketContext';
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
-import io from 'socket.io-client';
-
-const socket = io.connect("http://localhost:5000")
 
 function App(){
   return(
     <ChakraProvider>
       <AuthProvider>
-        <Router>
-          <Routes>
-          <Route path="/" element={<Login />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/groups" element={<Groups />} />
-          </Routes>
-        </Router>
+        <SocketProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path='/groups' element={<Groups />} />
+              <Route path='/group-chat/:id' element={<GroupChat />} />
+            </Routes>
+          </Router>
+        </SocketProvider>
       </AuthProvider>
     </ChakraProvider>
-  )
+  );
 }
 
-export default App
+export default App;

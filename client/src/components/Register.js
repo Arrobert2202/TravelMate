@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import {Box, FormControl, Button, Input, Stack, InputGroup, Heading, Flex} from "@chakra-ui/react"
 import {LoginHeader} from "./Header";
 import styled from "styled-components";
+import { SocketContext } from './SocketContext';
 
 const StyledFlex = styled(Flex)`
   flex-direction: column;
@@ -44,7 +45,8 @@ const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmpassword, setConfirmPaswword] = useState('');
-  const [message, setMessage] =useState(null);
+  const [message, setMessage] = useState(null);
+  const socket = useContext(SocketContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
