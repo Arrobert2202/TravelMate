@@ -1,7 +1,123 @@
-import { Box, Flex, Text, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, FormControl, FormLabel, ModalBody, ModalHeader, Input, Select, IconButton, useRangeSlider } from '@chakra-ui/react';
+import { Box, Flex, Text, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, FormControl, FormLabel, ModalBody, ModalHeader, Input, Select, IconButton, useRangeSlider, useDisclosure } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
 import api from '../api';
 import React, { useContext, useEffect, useState } from 'react';
+import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
+import { isEditable } from '@testing-library/user-event/dist/utils';
+
+const MapModal = ({isOpen, onClose, city, onSelectLocation, setAccomodationAddress, isEditing, markerCoords}) => {
+  const [ cityCoords, setCityCoords] = useState({ lat: 0, lng: 0});
+  const [ marker, setMarker ] = useState(null);
+
+  const mapContainerStyle = {
+    width: '100%',
+    height: '60vh',
+  };
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: 'AIzaSyCXflpLy4A5tOC85UW5hYv_AEmfN3ZVmtI',
+    libraries: ['places'],
+  });
+
+  useEffect(() => {
+    const fetchCityCoords = async () => {
+    if ( isLoaded && city) {
+    try {
+      const geocoder = new window.google.maps.Geocoder();
+      const results = await geocoder.geocode({ address: city });
+      if (results.results && results.results.length>0) {
+        console.log("salcf");
+        const lat = results.results[0].geometry.location.lat();
+        const lng = results.results[0].geometry.location.lng();
+        setCityCoords({ lat, lng });
+
+        if(isEditing && markerCoords && !marker){
+          setMarker({
+            lat: markerCoords.lat,
+            lng: markerCoords.lng,
+          });
+          console.log("marker edit: ", marker);
+        }
+      }
+    } catch(error) {
+      console.error("Geocoding was not successful:", error);
+      }
+    }
+    };
+
+    fetchCityCoords();
+  }, [city, isLoaded, isEditing, markerCoords]);
+
+  const handleMapClick = (e) => {
+    console.log(e.latLng.lat());
+    setMarker({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+    console.log(marker);
+  };
+
+  const handleSelectLocation = async () => {
+    if (marker) {
+      const geocoder = new window.google.maps.Geocoder();
+      const latlng = { lat: marker.lat, lng: marker.lng };
+  
+      try {
+        const response = await geocoder.geocode({ location: latlng });
+        if (response && response.results && response.results.length > 0) {
+          const address = response.results[0].formatted_address;
+          console.log("new address ", address);
+          setAccomodationAddress(address);
+          onSelectLocation(latlng);
+          onClose();
+        } else {
+          console.error("No address found for selected location");
+        }
+      } catch (error) {
+        console.error("Error geocoding location:", error);
+      }
+    }
+  };
+
+  if (loadError) {
+    return <div>Error loading maps</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading maps</div>;
+  }
+
+  return(
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      isCentered
+      motion
+    >
+      <ModalOverlay
+        bg='blackAlpha.300'
+        backdropFilter='blur(10px)'
+      />
+        <ModalContent overflow="auto">
+          <ModalHeader>Choose accomodation location</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              zoom={10}
+              center={cityCoords}
+              onClick={handleMapClick}
+            >
+              {marker ? <Marker position={marker} /> : null}
+              <Button colorScheme="blue" onClick={handleSelectLocation} mt={4}>
+                Select Location
+              </Button>
+            </GoogleMap>
+          </ModalBody>
+        </ModalContent>
+    </Modal>
+  );
+};
 
 export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpired, addNewGroup, socket, group}) => {
   const [countries, setCountries] = useState([]);
@@ -17,6 +133,9 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
   const [memberError, setMemberError] = useState('');
   const [adminError, setAdminError] = useState('');
   const [admins, setAdmins] = useState([]);
+  const [accomodationLocation, setAccomodationLocation] = useState(null);
+  const [accomodationAddress, setAccomodationAddress] = useState(null);
+  const { isOpen: isOpenMap, onOpen: onOpenMap, onClose: onCloseMap } = useDisclosure();
 
   useEffect(() => {
     console.log(localStorage.getItem("username"));
@@ -39,7 +158,8 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
   }, [token, handleTokenExpired]);
 
   useEffect(() => {
-    if(isEditing){
+    if(isEditing && group){
+      console.log(group);
       setGroupName(group.name);
       setMembers(group.members);
       setSelectedCountry(group.destination.country);
@@ -47,6 +167,8 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
       setSelectedState(group.destination.state);
       fetchCities(selectedCountry, selectedState);
       setSelectedCity(group.destination.city);
+      setAccomodationAddress(group.location.address);
+      setAccomodationLocation(group.location.coordinates);
       setAdmins(group.admins);
       setAdminError('');
       setMemberError('');
@@ -62,8 +184,9 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
       });
       setStates(response.data);
       setCities([]);
-      if(group){
+      if(isEditing && group){
         setSelectedState(group.destination.state);
+        fetchCities(country, group.destination.state);
       } else {
         setSelectedState('');
       }
@@ -84,7 +207,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
         }
       });
       setCities(response.data);
-      if(group) {
+      if(isEditing && group) {
         setSelectedCity(group.destination.city);
       } else {
         setSelectedCity('');
@@ -113,8 +236,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
   };
 
   const handleCityChange = (e) => {
-    const city = e.target.value;
-    setSelectedCity(city);
+    setSelectedCity(e.target.value);
   };
 
   const handleAddMember = async () => {
@@ -156,14 +278,14 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
         return;
       }
 
-      const response = await api.post('/users/validate', {username: memberName}, {
+      const response = await api.post('/users/validate', {username: adminName}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       
       if(response.data.exists) {
-        setAdmins([...admins, { id: response.data.userId, username: memberName}]);
+        setAdmins([...admins, { id: response.data.userId, username: adminName}]);
         setAdminName('');
         setAdminError('');
       } else {
@@ -187,28 +309,63 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
   };
   
   const handleSubmit = async () => {
+    console.log(group);
     try {
-      console.log("members: ", members);
-      const memberIds = members.map(member => member.userId);
-      const newGroup = {
-        name: groupName,
-        country: selectedCountry,
-        state: selectedState,
-        city: selectedCity,
-        members: [...members, { userId: localStorage.getItem("userId"), username: localStorage.getItem("username")}],
-        message: "Welcome to your next trip!!",
-        admins: [{ id: localStorage.getItem("userId"), username: localStorage.getItem("username")}]
-      };
-      const response = await api.post('/groups/create', newGroup, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const group = response.data;
-      console.log('Group created:', group);
-      socket.emit('receiveNewGroup', group);
-      addNewGroup(response.data); 
-      onClose();
+      if(isEditing && group){
+        group.name = groupName;
+        group.destination.country = selectedCountry;
+        group.destination.state = selectedState;
+        group.destination.city = selectedCity;
+        group.members = members;
+        group.admins = admins;
+        group.location.address = accomodationAddress;
+        group.location.coordinates = accomodationLocation;
+
+        const updatedGroup = {
+          name: groupName,
+          destination: {
+            country: selectedCountry,
+            state: selectedState,
+            city: selectedCity
+          },
+          location: {
+            address: accomodationAddress,
+            coordinates: accomodationLocation
+          },
+          members: members,
+          admins: admins
+        };
+        const response = await api.post(`/groups/${group._id}/update`, updatedGroup, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const newGroup = response.data;
+        console.log('Group created:', newGroup);
+        onClose();
+      } else {
+        const newGroup = {
+          name: groupName,
+          country: selectedCountry,
+          state: selectedState,
+          city: selectedCity,
+          address: accomodationAddress,
+          coordinates: accomodationLocation,
+          members: [...members, { userId: localStorage.getItem("userId"), username: localStorage.getItem("username")}],
+          message: "Welcome to your next trip!!",
+          admins: [{ id: localStorage.getItem("userId"), username: localStorage.getItem("username")}]
+        };
+        const response = await api.post('/groups/create', newGroup, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const group = response.data;
+        console.log('Group created:', group);
+        socket.emit('receiveNewGroup', group);
+        addNewGroup(response.data); 
+        onClose();
+      }
     } catch (error) {
       console.error("Error creating the group: ", error);
     }
@@ -238,6 +395,11 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
       setSelectedCity('');
       onClose();
     }
+  };
+
+  const handleSelectLocation = (coords) => {
+    console.log("coords: ", coords);
+    setAccomodationLocation(coords);
   };
 
   return(
@@ -286,6 +448,26 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
               </Select>
             </FormControl>
           </Box>
+          <FormControl mt={4}>
+              <FormLabel>Accomodation location</FormLabel>
+              <Button
+                  onClick={onOpenMap}
+                  _hover={{
+                    transform: "scale(1.05)",
+                  }}
+                  style={{
+                    transition: "transform 0.3s ease",
+                  }}
+                  marginRight="1rem"
+                  isDisabled={!selectedCity}
+                >
+                  Select on map
+                </Button>
+                {accomodationAddress && (
+                  <Text mt={4} fontWeight="bold">Accommodation Address: {accomodationAddress}</Text>
+                )}
+                <MapModal isOpen={isOpenMap} onClose={onCloseMap} city={selectedCity} onSelectLocation={handleSelectLocation} setAccomodationAddress={setAccomodationAddress} isEditing={isEditing} markerCoords={isEditing && group ? group.location.coordinates : null}/>
+          </FormControl>
           <FormControl mt={4}>
             <FormLabel>Add member</FormLabel>
             <Input placeholder='Username' value={memberName} onChange={(e) => setMemberName(e.target.value)} />

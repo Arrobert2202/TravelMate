@@ -4,6 +4,7 @@ import Register from './components/Register'
 import Dashboard from './components/Dashboard';
 import Groups from './components/Groups';
 import GroupChat from './components/GroupChat';
+import RatingPage from './components/Rating';
 import { AuthContext, AuthProvider } from './components/AuthContext';
 import { SocketContext, SocketProvider } from './components/SocketContext';
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
@@ -22,6 +23,7 @@ function App(){
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path='/groups' element={<Groups />} />
               <Route path='/group-chat/:id' element={<GroupChat />} />
+              <Route path='/attraction-rating' element={<RatingPage />}/>
             </Routes>
           </Router>
         </SocketProvider>

@@ -74,7 +74,7 @@ export function Header() {
     { path: "/dashboard", text: "Profile", icon: <CgProfile /> },
     { path: "/dashboard", text: "Home", icon: <FaHome /> },
     { path: "/groups", text: "Groups", icon: <HiUserGroup /> },
-    { path: "/dashboard", text: "Recommendations", icon: <FiStar /> }
+    { path: "/attraction-rating", text: "Attraction rating", icon: <FiStar /> }
   ];
 
   return (
@@ -93,8 +93,8 @@ export function Header() {
           <NavItem href="/groups" icon={<HiUserGroup/>}>
             Groups
           </NavItem>
-          <NavItem href="#" icon={<FiStar/>}>
-            Recommendations
+          <NavItem href="/attraction-rating" icon={<FiStar/>}>
+            Attraction Rating
           </NavItem>
         </Flex>
       )}

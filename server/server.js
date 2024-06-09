@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const { Server } = require("socket.io");
 const connectDB = require("./db");
 require("dotenv").config();
+const multer = require('multer');
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
@@ -21,11 +22,15 @@ const io = new Server(server, {
     methods: ['GET', 'POST']
   }
 });
-const socketUser = {};
 connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/destination', topdestinationsRoutes);
@@ -61,4 +66,4 @@ server.listen(process.env.PORT, () =>{
   console.log(`Server is listening on port ${process.env.PORT}`);
 });
 
-module.exports = { app, server, io, socketUser};
+module.exports = { app, server, io, upload };

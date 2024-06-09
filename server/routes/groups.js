@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const Group = require('../models/groupSchema');
 const User = require('../models/userSchema');  
-const auth = require('../middleware/auth');
+const auth = require('../middleware/auth'); 
+const supabase = require('../middleware/supabase');
+const { decode } = require('base64-arraybuffer');
+const upload = require('../middleware/multerConfig');
 
 router.post('/create', auth, async (req, res) => {
-  const { name, country, state, city, members, message, admins } = req.body;
+  const { name, country, state, city, address, coordinates, members, message, admins } = req.body;
 
   try{
     const userId = req.user._id.toString();
@@ -24,6 +27,13 @@ router.post('/create', auth, async (req, res) => {
         country,
         state,
         city
+      },
+      location: {
+        address,
+        coordinates: {
+          lat: coordinates.lat,
+          lng: coordinates.lng
+        }
       },
       members: allMembers,
       messages: [{
@@ -72,10 +82,10 @@ router.get('/user-groups', auth, async (req, res) => {
 });
 
 router.get('/:id', auth, async (req, res) => {
+  const groupId = req.params.id;
+  console.log(`group id: ${groupId}`);
   try{
-    const groupId = req.params.id;
-    console.log(`group id: ${groupId}`);
-    const group = await Group.findById(groupId).select('name destination members admins lastModified').populate({
+    const group = await Group.findById(groupId).select('name destination location members admins lastModified').populate({
       path: 'messages',
       options: { sort: { 'date': -1}, limit: 20}
     });
@@ -85,6 +95,22 @@ router.get('/:id', auth, async (req, res) => {
     }
     res.status(200).json(group);
   } catch(error){
+    console.error(error);
+    res.status(500).json({ error: `Failed to get group with id:${groupId}.` });
+  }
+});
+
+router.post('/:id/update', auth, async (req, res) => {
+  const groupId = req.params.id;
+  const { name, destination, location, members, admins } = req.body;
+  const updatedGroup = { name, destination, location, members, admins };
+  try{
+    const group = await Group.findByIdAndUpdate( groupId, { $set: updatedGroup}, {new: true, runValidators: true});
+    if(!group){
+      return res.status(404).json({ error: 'Group not found'});
+    }
+    res.status(200).json(group);
+  } catch (error){
     console.error(error);
     res.status(500).json({ error: `Failed to get group with id:${groupId}.` });
   }
@@ -112,7 +138,7 @@ router.get('/:id/messages', auth, async (req, res) => {
 
 router.post('/:id/message', auth, async(req, res) => {
   const groupId = req.params.id;
-  const { content, type, link, image } = req.body;
+  const { content, type, imageUrl } = req.body;
 
   try{
     const group = await Group.findById(groupId);
@@ -132,8 +158,7 @@ router.post('/:id/message', auth, async(req, res) => {
       },
       content,
       type,
-      link,
-      image,
+      imageUrl,
       date: new Date(),
     };
 
@@ -147,6 +172,65 @@ router.post('/:id/message', auth, async(req, res) => {
     group.lastModified = new Date();
     await group.save();
 
+    res.status(201).json(newMessage);
+  } catch (error){
+    console.error(error);
+    res.status(500).json({error: 'Failed to send message.'});
+  }
+});
+
+router.post('/:id/message/image', upload.single('image'), auth, async(req, res) => {
+  const groupId = req.params.id;
+
+  try{
+    const group = await Group.findById(groupId);
+    if(!group){
+      return res.status(404).json({ error: 'Group not found'});
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const image = req.file;
+    if(!image){
+      return res.status(404).json({ message: 'Upload a file'});
+    }
+    
+    const imageBase64 = decode(image.buffer.toString("base64"));
+    const { data, error } = await supabase.storage
+      .from("images")
+      .upload(image.originalname, imageBase64, {
+        contentType: "image/png",
+      });
+    
+    const { data: imageFile} = supabase.storage
+      .from("images")
+      .getPublicUrl(data.path);
+
+    const newMessage = {
+      author: {
+        id: req.user._id,
+        username: user.username
+      },
+      content: "",
+      type: "image",
+      imageUrl: imageFile.publicUrl,
+      date: new Date(),
+    };
+
+    for (const member of group.members){
+      if(member.userId.toString() !== req.user._id.toString()){
+        member.unreadMessages += 1;
+      }
+    }
+
+    group.messages.push(newMessage);
+    group.lastModified = new Date();
+    await group.save();
+
+    console.log(imageFile.publicUrl);
     res.status(201).json(newMessage);
   } catch (error){
     console.error(error);

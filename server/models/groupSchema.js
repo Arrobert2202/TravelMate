@@ -34,16 +34,12 @@ const messageSchema = new Schema({
   content: {
     type: String
   },
-  link: {
+  imageUrl: {
     type: String
-  },
-  image: {
-    data: Buffer,
-    contentType: String
   },
   type: {
     type: String,
-    enum: ['text', 'image', 'link'],
+    enum: ['text', 'image'],
     default: 'text'
   },
   date: {
@@ -70,6 +66,16 @@ const groupSchema = new Schema({
     city: {
       type: String,
       required: true
+    }
+  },
+  location: {
+    address: {
+      type: String,
+      required: true
+    },
+    coordinates: {
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true }
     }
   },
   messages: [messageSchema],
