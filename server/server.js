@@ -12,6 +12,7 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const topdestinationsRoutes = require("./routes/destination");
 const groupRoutes = require("./routes/groups");
+const ratingRoute = require("./routes/rating");
 const socketAuth = require("./middleware/socket");
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/destination', topdestinationsRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/attraction', ratingRoute);
 
 io.use(socketAuth);
 

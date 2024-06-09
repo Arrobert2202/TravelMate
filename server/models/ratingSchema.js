@@ -2,16 +2,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ratingSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
   country: {
     type: String,
     required: true
   },
   state: {
-    required: String,
+    type: String,
     required: true
   },
   city: {
@@ -22,11 +18,18 @@ const ratingSchema = new Schema({
     type: String,
     required: true
   },
-  description: [{
-    word: {
-      type: String,
-    }
-  }]
+  description: {
+    type: [String],
+    required: true
+  },
+  rating: {
+    type: String,
+    required: true
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }
 });
 
 const Rating = mongoose.model('Rating', ratingSchema);

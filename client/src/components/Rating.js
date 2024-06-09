@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect} from 'react';
 import { AuthContext } from './AuthContext';
 import api from '../api';
 import { Header } from './Header';
-import { Box, Input, Text, Flex, IconButton, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, useDisclosure, FormControl, FormLabel, Select } from '@chakra-ui/react';
+import { Heading, Box, Input, Text, Flex, IconButton, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, useDisclosure, FormControl, FormLabel, Select } from '@chakra-ui/react';
 import StarRating from './StarRating';
 import { CloseIcon } from '@chakra-ui/icons';
 
@@ -109,6 +109,7 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
   };
 
   const handleNewAttraction = (e) => {
+    console.log(e.target.value);
     setSelectedAttraction(e.target.value);
   }
 
@@ -125,7 +126,7 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
 
   const handleAddDescription = () => {
    const trimmedAdjective = adjective.trim();
-   if(trimmedAdjective === ' '){
+   if(trimmedAdjective === ''){
     setDescriptionError('Enter a word');
     return;
    } else if(trimmedAdjective.includes(' ')){
@@ -140,7 +141,8 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
    }
 
    if(descriptionList.length === 5){
-    setDescriptionError('You are allowed to give maximum 5 word')
+    setDescriptionError('You are allowed to give maximum 5 word');
+    return;
    }
 
    setDescriptionList([...descriptionList, trimmedAdjective]);
@@ -153,10 +155,11 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
   }
 
   const handleSubmit = async () => {
-    if(selectedCountry === '' || selectedState === '' || selectedCity === '' || selectedAttraction === '' || descriptionList.length() === 0 || rating === 0){
+    if(selectedCountry === '' || selectedState === '' || selectedCity === '' || selectedAttraction === '' || descriptionList.length === 0 || rating === 0){
       console.log("All fields are required");
       return;
     }
+
     const newRating = {
       country: selectedCountry,
       state: selectedState,
@@ -165,14 +168,21 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
       description: descriptionList,
       rating: rating
     };
-    const response = await api.post('/attraction/ratings', newRating, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    try{
+      const response = await api.post('/attraction/ratings', newRating, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      console.log(response.data);
+      handleClose();
+    } catch (error) {
+      console.error("Error submitting rating: ", error);
+      if (error.response && error.response.status === 401) {
+        handleTokenExpired();
       }
-    });
-    console.log('rating data: ', response.data);
-    onClose();
-  }
+    }
+  };
 
   return(
     <Modal
@@ -219,7 +229,7 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
               <FormLabel>Attractions</FormLabel>
               <Select placeholder='Select attraction' value={selectedAttraction} onChange={handleNewAttraction} isDisabled={!selectedCity}>
                   {attractions.map((attraction, index) => (
-                    <option key={index} value={attraction}>{attraction.name}</option>
+                    <option key={index} value={attraction.name}>{attraction.name}</option>
                   ))}
               </Select>
             </FormControl>
@@ -268,16 +278,31 @@ function RatingPage() {
   const { token, handleTokenExpired } = useContext(AuthContext);
   const [ attraction, setAttraction ] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [searchResults, setSearchResults] = useState([]);
 
   const handleEnter = async (event) => {
     if(event.keyCode === 13){
-      
+      handleAttraction();   
     } 
   }
 
-  const handleAttraction = () => {
+  const handleAttraction = async () => {
+    try {
+      const response = await api.post(`/attraction/search`, attraction, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(response.data);
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error("Error searching for attraction: ", error);
+    }
+  };
 
-  }
+  const handleSelectAttraction = (selectedAttraction) => {
+    console.log("Selected attraction: ", selectedAttraction);
+  };
 
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflow="hidden">
@@ -286,7 +311,7 @@ function RatingPage() {
         <Box display="flex" flexDirection="row">
           <Input placeholder='Attraction' color="#D8DFE9" marginRight="1rem" value={attraction} onChange={(e) => {setAttraction(e.target.value)}} onKeyDown={handleEnter}/>
           <Button 
-            onClick={() => handleAttraction}
+            onClick={handleAttraction}
             _hover={{
               transform: "scale(1.05)",
             }}
@@ -309,6 +334,25 @@ function RatingPage() {
           Add rating
         </Button>
         <RatingModal isOpen={isOpen} onClose={onClose} token={token} handleTokenExpired={handleTokenExpired}/>
+      </Box>
+      <Box display="flex" marginTop="3rem" marginLeft="2rem" marginRight="2rem">
+        <Box flex="1" marginRight="2rem" maxWidth="35%">
+          <Heading color="#D8DFE9" marginBottom="2rem">Search results</Heading>
+          {searchResults.map((result, index) => (
+            <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
+              <Text color="#D8DFE9">{result.attraction}</Text>
+            </Box>
+          ))}
+        </Box>
+        <Box flex="1">
+          {/* TODO:  word cloud */}
+          <Heading color="#D8DFE9" marginBottom="2rem">Search results</Heading>
+          {searchResults.map((result, index) => (
+            <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
+              <Text color="#D8DFE9">{result.attraction}</Text>
+            </Box>
+          ))}
+        </Box>
       </Box>
     </Box>
   );
