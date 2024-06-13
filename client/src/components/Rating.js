@@ -5,6 +5,8 @@ import { Header } from './Header';
 import { Heading, Box, Input, Text, Flex, IconButton, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, useDisclosure, FormControl, FormLabel, Select } from '@chakra-ui/react';
 import StarRating from './StarRating';
 import { CloseIcon } from '@chakra-ui/icons';
+import { FaStar } from "react-icons/fa";
+import WordCloudComponent from "./WordCloud";
 
 const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
   const [countries, setCountries] = useState([]);
@@ -279,6 +281,7 @@ function RatingPage() {
   const [ attraction, setAttraction ] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedAttraction, setSelectedAttraction] = useState(null);
 
   const handleEnter = async (event) => {
     if(event.keyCode === 13){
@@ -301,6 +304,7 @@ function RatingPage() {
   };
 
   const handleSelectAttraction = (selectedAttraction) => {
+    setSelectedAttraction(selectedAttraction);
     console.log("Selected attraction: ", selectedAttraction);
   };
 
@@ -345,13 +349,16 @@ function RatingPage() {
           ))}
         </Box>
         <Box flex="1">
-          {/* TODO:  word cloud */}
-          <Heading color="#D8DFE9" marginBottom="2rem">Search results</Heading>
-          {searchResults.map((result, index) => (
-            <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
-              <Text color="#D8DFE9">{result.attraction}</Text>
+          {selectedAttraction && (
+            <Box>
+              <Heading color="#D8DFE9" marginBottom="2rem">{selectedAttraction.attraction}</Heading>
+              <Flex align="center" color="#D8DFE9">
+                <Heading color="#D8DFE9" marginRight="0.5rem"><b>Rating:</b> {selectedAttraction.rating}</Heading>
+                <FaStar color="#FFD700" size="2rem" />
+              </Flex>
+              <WordCloudComponent wordMap={selectedAttraction.description} />
             </Box>
-          ))}
+          )}
         </Box>
       </Box>
     </Box>

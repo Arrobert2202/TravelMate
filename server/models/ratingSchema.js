@@ -19,7 +19,8 @@ const ratingSchema = new Schema({
     required: true
   },
   description: {
-    type: [String],
+    type: Map,
+    of: Number,
     required: true
   },
   rating: {
@@ -29,6 +30,10 @@ const ratingSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  count: { 
+    type: Number,
+    default: 0
   }
 });
 
