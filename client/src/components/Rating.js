@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect} from 'react';
 import { AuthContext } from './AuthContext';
 import api from '../api';
-import { Header } from './Header';
+import { LoggedHeader } from './Header';
 import { Heading, Box, Input, Text, Flex, IconButton, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, useDisclosure, FormControl, FormLabel, Select } from '@chakra-ui/react';
 import StarRating from './StarRating';
 import { CloseIcon } from '@chakra-ui/icons';
@@ -310,7 +310,7 @@ function RatingPage() {
 
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflow="hidden">
-      <Header />
+      <LoggedHeader />
       <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginTop="2rem" marginRight="2rem">
         <Box display="flex" flexDirection="row">
           <Input placeholder='Attraction' color="#D8DFE9" marginRight="1rem" value={attraction} onChange={(e) => {setAttraction(e.target.value)}} onKeyDown={handleEnter}/>

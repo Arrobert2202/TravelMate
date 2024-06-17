@@ -71,7 +71,50 @@ export function Header() {
   }, []);
 
   const menuItems = [
-    { path: "/dashboard", text: "Profile", icon: <CgProfile /> },
+    { path: "/login", text: "Login", icon: <CgProfile /> },
+    { path: "/register", text: "Register", icon: <FaHome /> },
+  ];
+
+  return (
+    <Flex align="center" justify="space-between" padding="1rem" bg="#022831" marginTop="1rem">
+      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">TravelMate</Heading>
+      {isMobile ? (
+        <MobileMenu isOpen={isOpen} toggleMenu={toggleMenu} menuItems={menuItems} />
+      ) : (
+        <Flex marginRight="1 rem" as="ul" className="hidden lg:flex lg:items-center gap-5 text-sm">
+          <NavItem href="/login" icon={<CgProfile />}>
+           Login
+          </NavItem>
+          <NavItem href="/register" icon={<FaHome />}>
+            Register
+          </NavItem>
+        </Flex>
+      )}
+    </Flex>
+  );
+}
+
+export function LoggedHeader() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 743);
+  const [isOpen, setOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 743);
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return() => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const menuItems = [
+    { path: "/profile", text: "Profile", icon: <CgProfile /> },
     { path: "/dashboard", text: "Home", icon: <FaHome /> },
     { path: "/groups", text: "Groups", icon: <HiUserGroup /> },
     { path: "/attraction-rating", text: "Attraction rating", icon: <FiStar /> }
@@ -84,7 +127,7 @@ export function Header() {
         <MobileMenu isOpen={isOpen} toggleMenu={toggleMenu} menuItems={menuItems} />
       ) : (
         <Flex marginRight="1 rem" as="ul" className="hidden lg:flex lg:items-center gap-5 text-sm">
-          <NavItem href="/login" icon={<CgProfile />}>
+          <NavItem href="/profile" icon={<CgProfile />}>
             Profile
           </NavItem>
           <NavItem href="/dashboard" icon={<FaHome />}>

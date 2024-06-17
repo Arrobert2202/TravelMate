@@ -247,7 +247,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
         return;
       }
 
-      const response = await api.post('/users/validate', {username: memberName}, {
+      const response = await api.post('/user/validate', {username: memberName}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -278,7 +278,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
         return;
       }
 
-      const response = await api.post('/users/validate', {username: adminName}, {
+      const response = await api.post('/user/validate', {username: adminName}, {
         headers: {
           Authorization: `Bearer ${token}`
         }

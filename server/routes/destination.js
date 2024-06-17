@@ -157,7 +157,7 @@ router.post('/attractions/route', auth, async (req, res) => {
       lng
     }));
     console.log("python data: ", JSON.stringify(pythonInputData));
-    const pythonScript = spawn('python', ['../algorithm.py']);  
+    const pythonScript = spawn('python', ['./algorithm.py']);  
 
     pythonScript.stdin.write(JSON.stringify(pythonInputData));
     pythonScript.stdin.end();

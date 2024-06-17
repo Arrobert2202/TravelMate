@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import api from "../api";
 
 export const AuthContext = createContext();
 
@@ -18,8 +19,22 @@ export const AuthProvider = ({children}) => {
     localStorage.removeItem('token');
   };
 
+  const logout = async () => {
+    try{
+      await api.post('/logout', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setToken(null);
+      localStorage.removeItem('token');
+    } catch(error){
+      console.error('Logout failed: ', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{token, setToken, loading, handleTokenExpired}}>
+    <AuthContext.Provider value={{token, setToken, loading, handleTokenExpired, logout}}>
       {children}
     </AuthContext.Provider>
   );

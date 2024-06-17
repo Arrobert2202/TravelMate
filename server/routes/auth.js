@@ -35,6 +35,8 @@ router.post('/register', async (req, res) =>{
       status: "success",
       message: "You have successfully registered.",
       token: token,
+      userId: savedUser._id,
+      username: savedUser.username
     });
   } catch(error){
     console.error(error);

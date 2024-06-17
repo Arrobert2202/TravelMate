@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from './AuthContext';
-import { Header } from './Header';
+import { LoggedHeader } from './Header';
 import { Box, Heading, Flex, Text, Button, Center, useDisclosure } from '@chakra-ui/react';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
@@ -15,8 +15,13 @@ const GroupBox = ({group}) => {
 
   useEffect(() => {
     if (group.messages.length > 0){
-      setLastMessage(group.messages[group.messages.length-1].content);
-      setAuthor(group.messages[group.messages.length-1].author);
+      const lastMsg = group.messages[group.messages.length-1];
+      if(lastMsg.type === 'text'){
+        setLastMessage(lastMsg.constent);
+      } else if(lastMsg.type === 'image'){
+        setLastMessage('sent an image');
+      }
+      setAuthor(lastMsg.author);
       const member = group.members.find(member => member.userId === localStorage.getItem("userId"));
       setUnreadMessages(member.unreadMessages);
     }
@@ -156,7 +161,7 @@ function Groups() {
 
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflow="hidden">
-      <Header />
+      <LoggedHeader />
       <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginRight="2rem" marginTop="4rem" marginBottom="2rem">
         <Heading as="h3" color="#D8DFE9">Your groups</Heading>
         <Button 

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 import { Navigate } from "react-router-dom";
-import { Header } from "./Header";
+import { Header, LoggedHeader } from "./Header";
 import { Box, Heading, Text, ChakraProvider, Image, Tooltip} from "@chakra-ui/react";
 import { Provider, Carousel, LeftButton, RightButton} from "chakra-ui-carousel";
 import api from '../api';
@@ -41,7 +41,7 @@ function Dashboard() {
 
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">
-      <Header />
+      {token ? <LoggedHeader /> : <Header />}
       <Box display="flex" flexDirection="column" justifyContent="space-around" width="100%" maxW="100%" flexGrow={1}>
         <Box padding={"2rem"} marginTop={"2rem"} width="40%">
           <Heading as="h1" color="#D8DFE9">Welcome to Travel Mate!</Heading>

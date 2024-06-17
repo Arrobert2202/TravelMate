@@ -1,10 +1,10 @@
 import React, { useContext, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {Box, FormControl, Button, Input, Stack, InputGroup, Heading, Flex} from "@chakra-ui/react"
 import {LoginHeader} from "./Header";
 import styled from "styled-components";
-import { SocketContext } from './SocketContext';
+import { AuthContext } from "./AuthContext";
 
 const StyledFlex = styled(Flex)`
   flex-direction: column;
@@ -46,7 +46,8 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmpassword, setConfirmPaswword] = useState('');
   const [message, setMessage] = useState(null);
-  const socket = useContext(SocketContext);
+  const {setToken} = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,6 +63,13 @@ const Register = () => {
         password
       });
       setMessage(response.data.message);
+      const token = response.data.token;
+      setToken(token);
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", response.data.userId);
+      localStorage.setItem("username", response.data.username);
+      console.log("Token set: ", token);
+      navigate("/dashboard");
     } catch(error){ 
       console.error("Registration failed:", error.response.data.error);
       setMessage(error.response.data.error);

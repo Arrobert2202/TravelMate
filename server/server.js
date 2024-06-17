@@ -29,11 +29,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/destination', topdestinationsRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/attraction', ratingRoute);
@@ -68,4 +65,4 @@ server.listen(process.env.PORT, () =>{
   console.log(`Server is listening on port ${process.env.PORT}`);
 });
 
-module.exports = { app, server, io, upload };
+module.exports = { app, server, io };

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
-import { Header } from './Header';
+import { LoggedHeader } from './Header';
 import api from '../api';
 import { Box, Heading, Text, Card, CardBody, Input, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, Image } from '@chakra-ui/react';
 import { GroupModal } from './GroupModal';
@@ -368,7 +368,7 @@ function GroupChat() {
 
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflow="hidden">
-        <Header />
+        <LoggedHeader />
         {group ? (
           <>
             <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginTop="2rem" marginRight="2rem">
