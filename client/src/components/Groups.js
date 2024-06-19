@@ -17,7 +17,7 @@ const GroupBox = ({group}) => {
     if (group.messages.length > 0){
       const lastMsg = group.messages[group.messages.length-1];
       if(lastMsg.type === 'text'){
-        setLastMessage(lastMsg.constent);
+        setLastMessage(lastMsg.content);
       } else if(lastMsg.type === 'image'){
         setLastMessage('sent an image');
       }

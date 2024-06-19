@@ -141,7 +141,7 @@ const AttractionsRouteModal = ({city, isOpen, onClose, token, handleTokenExpired
       backdropFilter='blur(10px)'
       />
         <ModalContent maxHeight="90vh" overflow="auto">
-          <ModalHeader>Tourist attractions</ModalHeader>
+          <ModalHeader>Attractions route</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             {attractions.map((attraction, index) => (

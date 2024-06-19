@@ -89,7 +89,7 @@ const Register = () => {
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">
       <LoginHeader />
       <StyledFlex>
-        <Heading ml="1rem" as="h1" size="lg" color="#B4D330">Register</Heading>
+        <Heading ml="1rem" as="h1" size="lg" color="#B4D330" mb="1rem">Register</Heading>
           <form onSubmit={handleSubmit} style={{ maxWidth: "300px", width: "100%" }}>
             <Stack spacing={10} width={"100%"}>
               <FormControl isRequired>
