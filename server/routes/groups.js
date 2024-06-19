@@ -240,6 +240,7 @@ router.post('/:id/message/image', upload.single('image'), auth, async(req, res) 
 
 router.post('/:id/messages/read', auth, async (req, res) => {
   const groupId = req.params.id;
+  const userId = req.user._id.toString();
 
   try{ 
     const group = await Group.findById(groupId);
@@ -247,7 +248,7 @@ router.post('/:id/messages/read', auth, async (req, res) => {
       return res.status(404).json({ error: 'Group not found'});
     }
 
-    const user = group.members.find(member => member.userId.toString() === req.user._id.toString());
+    const user = group.members.find(member => member.userId.toString() === userId);
     if (user) {
       console.log("marcam ca citit");
       user.unreadMessages = 0;
@@ -257,6 +258,46 @@ router.post('/:id/messages/read', auth, async (req, res) => {
   } catch (error){
     console.error(error);
     res.status(500).json({error: 'Failed to mark messages as read.'});
+  }
+});
+
+router.post('/:id/leave', auth, async(req, res) => {
+  const groupId = req.params.id;
+  const userId = req.user._id.toString();
+
+  try{
+    const group = await Group.findByIdAndUpdate(groupId,
+      {
+        $pull: {
+          members: { userId: userId },
+          admins: { id: userId }
+        }
+      },
+      { new: true }
+    );
+
+    if(!group){
+      return res.status(404).json({ error: 'Group not found'});
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $pull: {
+          groups: groupId
+        }
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Left the group'});
+  } catch (error){
+    console.error(error);
+    res.status(500).json({error: 'Failed to leave group.'});
   }
 });
 

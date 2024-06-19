@@ -19,6 +19,9 @@ router.post('/ratings', auth, async (req, res) => {
     let existingRating = await Rating.findOne({ country, state, city, attraction });
 
     if(existingRating){
+      if (existingRating.users.includes(userId)) {
+        return res.status(400).json({ message: 'Cannot rate an atraction more than one time' });
+      }
       description.forEach((word) => {
         if(existingRating.description.has(word)){
           existingRating.description.set(word, existingRating.description.get(word)+1);
@@ -32,6 +35,7 @@ router.post('/ratings', auth, async (req, res) => {
 
       existingRating.rating = newRating;
       existingRating.count = newCount;
+      existingRating.users.push(userId);
 
       await existingRating.save();
 
@@ -42,7 +46,7 @@ router.post('/ratings', auth, async (req, res) => {
         map.set(word, 1);
       });
 
-      const newRating = new Rating({ country, state, city, attraction, description: map, rating, userId, count: 1 });
+      const newRating = new Rating({ country, state, city, attraction, description: map, rating, users: [userId], count: 1 });
       await newRating.save();
       console.log(newRating);
 
@@ -59,7 +63,7 @@ router.post('/search', auth, async (req, res) => {
 
   try{
     const regex = new RegExp(attraction, 'i');
-    const ratings = await Rating.find({ attraction: regex });
+    const ratings = await Rating.find({ attraction: { $regex: regex }});
 
     res.status(200).json(ratings);
   } catch (error) {

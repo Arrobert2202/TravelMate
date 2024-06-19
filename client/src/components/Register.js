@@ -1,10 +1,11 @@
 import React, { useContext, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import {Box, FormControl, Button, Input, Stack, InputGroup, Heading, Flex} from "@chakra-ui/react"
+import {Box, FormControl, Button, Input, Stack, InputGroup, Heading, Flex, Text} from "@chakra-ui/react"
 import {LoginHeader} from "./Header";
 import styled from "styled-components";
 import { AuthContext } from "./AuthContext";
+import validator from "validator";
 
 const StyledFlex = styled(Flex)`
   flex-direction: column;
@@ -46,11 +47,19 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmpassword, setConfirmPaswword] = useState('');
   const [message, setMessage] = useState(null);
+  const [error, setError] = useState('');
   const {setToken} = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(validator.isStrongPassword(password, { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 })) {
+      setMessage('Strong password');
+    } else {
+      console.log("salcf: ", password);
+      setMessage('Password must contain at least 8 characters, one uppercase letter, at least one number, and at least one special character');
+      return;
+    }
     if (password !== confirmpassword){
       console.log("Password doesn't match.");
       setMessage("Password doesn't match.");
@@ -103,6 +112,7 @@ const Register = () => {
                   <StyledInput type='password' placeholder='confirm password' value={confirmpassword} onChange={(e) => setConfirmPaswword(e.target.value)} aria-label='ConfirmPassword'/>
                 </InputGroup>
               </FormControl>
+            {message && <Text color="red">{message}</Text>}
             <Flex justifyContent="space-evenly">
               <StyledButton type="submit"> Sign up </StyledButton>
               <Box alignSelf="center" width="100%">

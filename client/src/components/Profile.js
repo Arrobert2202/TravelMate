@@ -4,6 +4,7 @@ import api from '../api';
 import { LoggedHeader } from './Header';
 import { Heading, Box, Input, Text, Flex, IconButton, Button, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, useDisclosure, FormControl, FormLabel, Select } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import validator from 'validator';
 
 const ChanePasswordModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -25,6 +26,12 @@ const ChanePasswordModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
       return;
     }
 
+    if(!validator.isStrongPassword(newPassword, { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 })) {
+      console.log("salcf: ", newPassword);
+      setError('Password must contain at least 8 characters, one uppercase letter, at least one number, and at least one special character');
+      return;
+    }
+
     try{
       const response = await api.post('/user/change-password', {currentPassword, newPassword}, {
         headers: {
@@ -39,7 +46,7 @@ const ChanePasswordModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
         handleTokenExpired();
       } else {
         console.error('Error changing password:', error);
-        setError(error.response ? error.response.data.message : 'Error changing password');
+        setError(error.response ? error.response.data : 'Error changing password');
       }
     }
   }
@@ -62,18 +69,16 @@ const ChanePasswordModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
             <FormControl mt={4}>
               <FormLabel>Current Password</FormLabel>
               <Input type='password' placeholder='current password' value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
-              {error && <Text color="red">{error}</Text>}
             </FormControl>
             <FormControl mt={4}>
               <FormLabel>New Password</FormLabel>
               <Input type='password' placeholder='new password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-              {error && <Text color="red">{error}</Text>}
             </FormControl>
             <FormControl mt={4}>
               <FormLabel>Confirm Password</FormLabel>
               <Input type='password' placeholder='confirm password' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-              {error && <Text color="red">{error}</Text>}
             </FormControl>
+            {error && <Text color="red">{error}</Text>}
             <Box display="flex" justifyContent="space-between">
               <Button colorScheme="blue" mr={3} onClick={handleSubmit} mt={4}>
                 Save
@@ -176,16 +181,22 @@ function Profile() {
   return(
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflow="hidden">
       <LoggedHeader />
-      <Box display="flex" flexDirection="row" p={4}>
-        <Box mb={4} maxWidth="50%" width="100%" justifyContent="center" alignItems="center">
+      <Box display="flex" flexDirection="row" p={4} flex="1">
+        <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" mb={4} maxWidth="50%" width="100%">
           {user && (
             <>
-              <Text color="#D8DFE9">Username: {user.username}</Text>
-              <Text color="#D8DFE9">Email: {user.email}</Text>
+              <Box display="flex" width="100%" justifyContent="center">
+        <Text color="#D8DFE9" fontWeight="bold" fontSize="xl" mr={2}>Username:</Text>
+        <Text color="#D8DFE9" fontSize="xl">{user.username}</Text>
+      </Box>
+      <Box display="flex" width="100%" justifyContent="center">
+        <Text color="#D8DFE9" fontWeight="bold" fontSize="xl" mr={2}>Email:</Text>
+        <Text color="#D8DFE9" fontSize="xl">{user.email}</Text>
+      </Box>
             </>
           )}
         </Box>
-        <Box display="flex" flexDirection="column" gap={3}>
+        <Box display="flex" flexDirection="column" justifyContent="center" gap={3}>
           <Button
             onClick={onChangePasswordOpen}
             _hover={{

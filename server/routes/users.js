@@ -43,7 +43,7 @@ router.post('/change-password', auth, async (req, res) => {
 
     const passwordMatch = await user.comparePassword(currentPassword);
     if(!passwordMatch){
-      return res.status(404).json('Password not match');
+      return res.status(404).json('Current password does not match');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -59,7 +59,13 @@ router.post('/change-password', auth, async (req, res) => {
 
 router.delete('/delete-account', auth, async (req, res) => {
   try{
-    const user = await User.findByIdAndDelete(req.user._id);
+    const userId = req.user._id;
+    await Group.updateMany(
+      { members: userId },
+      { $pull: { members: userId } }
+    );
+
+    const user = await User.findByIdAndDelete(userId);
     if(!user){
       return res.status(404).json('User not found');
     }

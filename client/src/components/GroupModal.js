@@ -14,9 +14,10 @@ const MapModal = ({isOpen, onClose, city, onSelectLocation, setAccomodationAddre
     height: '60vh',
   };
 
+  const libraries = ['places'];
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: 'AIzaSyCXflpLy4A5tOC85UW5hYv_AEmfN3ZVmtI',
-    libraries: ['places'],
+    libraries: libraries,
   });
 
   useEffect(() => {
@@ -169,6 +170,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
       setSelectedCity(group.destination.city);
       setAccomodationAddress(group.location.address);
       setAccomodationLocation(group.location.coordinates);
+      console.log("effect");
       setAdmins(group.admins);
       setAdminError('');
       setMemberError('');
@@ -272,9 +274,16 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
 
   const handleAddAdmin = async () => {
     try {
+      setAdminError('');
       const isAdminAlreadyAdded = admins.some(admin => admin.username === adminName);
       if(isAdminAlreadyAdded){
         setAdminError('Already an admin');
+        return;
+      }
+
+      const isMember = members.some(member => member.username === adminName);
+      if(!isMember){
+        setAdminError('Not a member');
         return;
       }
 
@@ -283,19 +292,15 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
           Authorization: `Bearer ${token}`
         }
       });
-      
+
+      console.log("saluti: ", response.data.exists); 
       if(response.data.exists) {
+        console.log("saluti: ", response.data); 
         setAdmins([...admins, { id: response.data.userId, username: adminName}]);
         setAdminName('');
         setAdminError('');
       } else {
         setAdminError('User not found');
-        return;
-      }
-
-      const isMember = members.some(member => member.username === adminName);
-      if(!isMember){
-        setAdminError('Not a member');
         return;
       }
     } catch(error) {
@@ -477,16 +482,17 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
           <Box mt={4}>
             <Text as='b'>Members:</Text>
             <Flex wrap="wrap" maxWidth="100%">
-              {members.map((member, index) => (
-                <Flex key={index} alignItems="center" m={1} p={2} borderWidth="1px" borderRadius="md">
-                  <Text mr={2}>{member.username}</Text>
-                  <IconButton
-                    aria-label="Remove member"
-                    icon={<CloseIcon />}
-                    size="sm"
-                    onClick={() => handleRemoveMember(member.username)}
-                  />
-              </Flex>
+              {members.filter((member) => member.username !== localStorage.getItem("username"))
+                .map((member, index) => (
+                  <Flex key={index} alignItems="center" m={1} p={2} borderWidth="1px" borderRadius="md">
+                    <Text mr={2}>{member.username}</Text>
+                    <IconButton
+                      aria-label="Remove member"
+                      icon={<CloseIcon />}
+                      size="sm"
+                      onClick={() => handleRemoveMember(member.username)}
+                    />
+                </Flex>
               ))}
             </Flex>
           </Box>
@@ -501,16 +507,17 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
               <Box mt={4}>
                 <Text as='b'>Admins:</Text>
                 <Flex wrap="wrap" maxWidth="100%">
-                  {admins.map((admin, index) => (
-                    <Flex key={index} alignItems="center" m={1} p={2} borderWidth="1px" borderRadius="md">
-                      <Text mr={2}>{admin.username}</Text>
-                      <IconButton
-                        aria-label="Remove admin"
-                        icon={<CloseIcon />}
-                        size="sm"
-                        onClick={() => handleRemoveAdmin(admin.username)}
-                      />
-                    </Flex>
+                  {admins.filter((admin) => admin.username !== localStorage.getItem("username"))
+                    .map((admin, index) => (
+                      <Flex key={index} alignItems="center" m={1} p={2} borderWidth="1px" borderRadius="md">
+                        <Text mr={2}>{admin.username}</Text>
+                        <IconButton
+                          aria-label="Remove admin"
+                          icon={<CloseIcon />}
+                          size="sm"
+                          onClick={() => handleRemoveAdmin(admin.username)}
+                        />
+                      </Flex>
                   ))}
                 </Flex>
               </Box>

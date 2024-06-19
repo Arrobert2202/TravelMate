@@ -19,6 +19,11 @@ router.post('/register', async (req, res) =>{
       return res.status(400).json({error: "This username already exists."});
     }
 
+    const emailTaken = await User.findOne({ email });
+    if (emailTaken) {
+      return res.status(400).json({ error: "This email is associated with an account." });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hash_password = await bcrypt.hash(password, salt);
     const newUser = new User({
@@ -55,7 +60,7 @@ router.post('/login', async (req, res) =>{
       
       const isValidPassword = await user.comparePassword(password);
       if(!isValidPassword){
-        return res.status(401).send("Invalid username or password.");
+        return res.status(401).json({error: "Invalid username or password."});
       }
 
       const token = generateTokens(user._id);

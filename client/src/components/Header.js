@@ -46,7 +46,7 @@ const MobileMenu = ({isOpen, toggleMenu, menuItems}) => (
 export function LoginHeader(){
   return (
     <Flex align="center" justify="space-between" p={4} bg="#022831">
-      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">TravelMate</Heading>
+      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">ExploreTogether</Heading>
     </Flex>
   );
 }
@@ -77,7 +77,7 @@ export function Header() {
 
   return (
     <Flex align="center" justify="space-between" padding="1rem" bg="#022831" marginTop="1rem">
-      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">TravelMate</Heading>
+      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">ExploreTogether</Heading>
       {isMobile ? (
         <MobileMenu isOpen={isOpen} toggleMenu={toggleMenu} menuItems={menuItems} />
       ) : (
@@ -122,7 +122,7 @@ export function LoggedHeader() {
 
   return (
     <Flex align="center" justify="space-between" padding="1rem" bg="#022831" marginTop="1rem">
-      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">TravelMate</Heading>
+      <Heading ml="1rem" as="h1" size="lg" color="#B4D330">ExploreTogether</Heading>
       {isMobile ? (
         <MobileMenu isOpen={isOpen} toggleMenu={toggleMenu} menuItems={menuItems} />
       ) : (

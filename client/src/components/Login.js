@@ -2,7 +2,7 @@ import React, { useState, useContext} from "react";
 import axios from "axios";
 import { AuthContext } from "./AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import {Box, FormControl, FormErrorMessage, Button, Input, Stack, InputGroup, Flex, Heading} from "@chakra-ui/react"
+import {Box, FormControl, FormErrorMessage, Button, Input, Stack, InputGroup, Flex, Heading, Text} from "@chakra-ui/react"
 import { LoginHeader } from "./Header";
 import styled from "styled-components";
 import { SocketContext } from './SocketContext';
@@ -67,7 +67,7 @@ const Login = () => {
       setToken(null);
       localStorage.removeItem("token");
       if(error.response && error.response.data){
-        setErrorMessage(error.response.data);
+        setErrorMessage(error.response.data.error);
       } else {
         setErrorMessage("An error occurred. Try again.");
       }
@@ -91,6 +91,7 @@ const Login = () => {
                 <StyledInput type='password' placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} aria-label='Password'/>
               </InputGroup>
             </FormControl>
+            {errorMessage && <Text color="red">{errorMessage}</Text>}
             <Flex justifyContent="space-evenly">
               <StyledButton type="submit"> Sign in </StyledButton>
               <Box alignSelf="center" width="100%">
@@ -100,7 +101,6 @@ const Login = () => {
               </Box>
             </Flex>
           </Stack>
-          {errorMessage && <FormErrorMessage>{errorMessage}</FormErrorMessage>}
         </form>
       </StyledFlex>
     </Box>

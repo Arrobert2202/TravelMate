@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
 import { LoggedHeader } from './Header';
 import api from '../api';
-import { Box, Heading, Text, Card, CardBody, Input, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, Image } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, CardBody, Input, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, Image, List, ListItem, ListIcon, Spinner } from '@chakra-ui/react';
 import { GroupModal } from './GroupModal';
+import { SpinnerIcon } from "@chakra-ui/icons";
 
 const MessageBox = ( message, index) =>{
   //console.log(message);
@@ -174,9 +175,67 @@ const MembersModal = ({members, isOpen, onClose}) => {
           <ModalHeader>Members</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            {members.map((member, index) => (
-              <Box key={index}>{member.username}</Box>
-            ))}
+            <List>
+              {members.map((member, index) => (
+                <ListItem key={index} display="flex" alignItems="center">
+                  <ListIcon as={SpinnerIcon}/>
+                  <Box fontWeight="bold">{member.username}</Box>
+                </ListItem>
+              ))}
+            </List>
+          </ModalBody>
+        </ModalContent>
+    </Modal>
+  );
+};
+
+const LeaveGroupModal = ({ isOpen, onClose, token, handleTokenExpired, groupId }) => {
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLeaveGroup = async () => {
+    try{
+      const response = await api.post(`/groups/${groupId}/leave`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      console.log(response.data.message);
+      alert(response.data.message);
+      navigate('/groups');
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        handleTokenExpired();
+      } else {
+        console.error('Error leaving the group:', error);
+        setError(error.response ? error.response.data.message : 'Error leaving the group');
+      }
+    }
+  };
+
+  return(
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      isCentered
+      motion
+    >
+      <ModalOverlay
+        bg='blackAlpha.300'
+        backdropFilter='blur(10px)'
+      />
+        <ModalContent maxHeight="90vh" overflow="auto">
+          <ModalHeader>Leave group</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <Text color="black">Are you sure you want to leave this group?</Text>
+            {error && <Text color="red">{error}</Text>}
+            <Box display="flex" justifyContent="space-between">
+              <Button colorScheme="blue" mr={3} onClick={handleLeaveGroup} mt={4}>
+                Leave
+              </Button>
+              <Button onClick={onClose} mt={4}>Cancel</Button>
+            </Box>
           </ModalBody>
         </ModalContent>
     </Modal>
@@ -195,6 +254,7 @@ function GroupChat() {
   const socket = useContext(SocketContext);
   const { isOpen: isOpenAttractionsModal, onOpen: onOpenAttractionsModal, onClose: onCloseAttractionsModal } = useDisclosure();
   const { isOpen: isOpenAttractionsRouteModal, onOpen: onOpenAttractionsRouteModal, onClose: onCloseAttractionsRouteModal } = useDisclosure();
+  const { isOpen: isOpenLeaveModal, onOpen: onOpenLeaveModal, onClose: onCloseLeaveModal } = useDisclosure();
   const { isOpen: isOpenEditModal, onOpen: onOpenEditModal, onClose: onCloseEditModal } = useDisclosure();
   const [ unreadMessages, setUnreadMessages ] = useState(false);
   const [ isAdmin, setIsAdmin] = useState(false);
@@ -414,6 +474,19 @@ function GroupChat() {
                   Members
                 </Button>
                 <MembersModal members={group.members} isOpen={isOpenMemberModal} onClose={onCloseMemberModal}/>
+                <Button
+                  onClick={onOpenLeaveModal}
+                  _hover={{
+                    transform: "scale(1.05)",
+                  }}
+                  style={{
+                    transition: "transform 0.3s ease",
+                  }}
+                  marginRight="1rem"
+                >
+                  Leave Group
+                </Button>
+                <LeaveGroupModal isOpen={isOpenLeaveModal} onClose={onCloseLeaveModal} groupId={groupId}/>
                 { isAdmin && (
                   <div>
                     <Button
@@ -438,7 +511,7 @@ function GroupChat() {
             </Box>
             <Box display="flex" flexDirection="row" p="2rem">
               <Input placeholder='Message' color="#D8DFE9" value={newMessage} onChange={(e) => {setNewMessage(e.target.value)}} onKeyDown={handleEnter}/>
-              <Input type="file" accept="image/*" onChange={(e) => {setImage(e.target.files[0])}} color="#D8DFE9"/>
+              <Input type="file" accept="image/*" onChange={(e) => {setImage(e.target.files[0])}} color="#D8DFE9" width="23%"/>
               <Button onClick={() => handleNewMessage()}>Send</Button>
             </Box>
           </>

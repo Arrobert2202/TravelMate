@@ -27,15 +27,18 @@ const ratingSchema = new Schema({
     type: String,
     required: true
   },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
+  users: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User',
+    default: []
   },
   count: { 
     type: Number,
     default: 0
   }
 });
+
+ratingSchema.index({attraction: 'text'});
 
 const Rating = mongoose.model('Rating', ratingSchema);
 module.exports = Rating;

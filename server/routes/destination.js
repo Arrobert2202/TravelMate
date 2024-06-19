@@ -27,7 +27,7 @@ router.post('/top-destinations', async (req, res) =>{
   }
 });
 
-router.get('/top-destinations', auth, async (req, res) => {
+router.get('/top-destinations', async (req, res) => {
   try{
     const destionations = await TopDestination.find();
 

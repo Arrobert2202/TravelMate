@@ -11,7 +11,7 @@ import WordCloudComponent from "./WordCloud";
 const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [cities, setCities]   = useState([]);
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
@@ -21,6 +21,7 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
   const [adjective, setAdjective] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
   const [descriptionList, setDescriptionList] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -119,10 +120,12 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
       setSelectedCountry('');
       setSelectedState('');
       setSelectedCity('');
+      setSelectedAttraction('');
       setAdjective('');
       setDescriptionList([]);
       setDescriptionError('');
       setRating(0);
+      setError('');
       onClose();
   };
 
@@ -182,6 +185,9 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
       console.error("Error submitting rating: ", error);
       if (error.response && error.response.status === 401) {
         handleTokenExpired();
+      } else if (error.response && error.response.status === 400) {
+        setError(error.response.data.message);
+        handleClose();
       }
     }
   };
@@ -264,6 +270,7 @@ const RatingModal = ({ isOpen, onClose, token, handleTokenExpired }) => {
               </Flex>
             </Box>
             )}
+            {error && <Text color="red" mt={4}>{error}</Text>}
             <Box display="flex" justifyContent="space-between">
               <Button colorScheme="blue" mr={3} onClick={handleSubmit} mt={4}>
                 Save
@@ -282,6 +289,7 @@ function RatingPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchResults, setSearchResults] = useState([]);
   const [selectedAttraction, setSelectedAttraction] = useState(null);
+  const [searched, setSearched] = useState(false);
 
   const handleEnter = async (event) => {
     if(event.keyCode === 13){
@@ -291,12 +299,15 @@ function RatingPage() {
 
   const handleAttraction = async () => {
     try {
-      const response = await api.post(`/attraction/search`, attraction, {
+      const response = await api.post(`/attraction/search`, { attraction: attraction }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      setSelectedAttraction(null);
+      setSearchResults([]);
       console.log(response.data);
+      setSearched(true);
       setSearchResults(response.data);
     } catch (error) {
       console.error("Error searching for attraction: ", error);
@@ -342,17 +353,21 @@ function RatingPage() {
       <Box display="flex" marginTop="3rem" marginLeft="2rem" marginRight="2rem">
         <Box flex="1" marginRight="2rem" maxWidth="35%">
           <Heading color="#D8DFE9" marginBottom="2rem">Search results</Heading>
-          {searchResults.map((result, index) => (
-            <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
-              <Text color="#D8DFE9">{result.attraction}</Text>
-            </Box>
-          ))}
+          {searchResults.length > 0 ? (
+            searchResults.map((result, index) => (
+              <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
+                <Text color="#D8DFE9">{result.attraction}</Text>
+              </Box>
+            ))
+          ) : (
+            searched && <Text color="#D8DFE9">No results found</Text>
+          )}
         </Box>
-        <Box flex="1">
+        <Box display="flex" flex="1" justifyContent="center" alignItems="center">
           {selectedAttraction && (
             <Box>
-              <Heading color="#D8DFE9" marginBottom="2rem">{selectedAttraction.attraction}</Heading>
-              <Flex align="center" color="#D8DFE9">
+              <Heading color="#D8DFE9" marginBottom="1rem">{selectedAttraction.attraction}</Heading>
+              <Flex align="center" color="#D8DFE9" marginBottom="1rem">
                 <Heading color="#D8DFE9" marginRight="0.5rem"><b>Rating:</b> {selectedAttraction.rating}</Heading>
                 <FaStar color="#FFD700" size="2rem" />
               </Flex>
