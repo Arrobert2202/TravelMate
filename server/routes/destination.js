@@ -51,7 +51,7 @@ router.post('/states', auth, async(req, res) => {
   const { country } = req.body;
   try{
     const response = await axios.post('https://countriesnow.space/api/v0.1/countries/states', { country });
-    const states = response.data.data.states.map(state => state.name);//.replace(/( County| State)$/, '')
+    const states = response.data.data.states.map(state => state.name);
     res.status(200).json(states);
   } catch (error){
     res.status(500).json({error: error.message});

@@ -426,7 +426,6 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
             <FormLabel>Group name</FormLabel>
             <Input placeholder=' Group name' value={groupName} onChange={(e) => setGroupName(e.target.value)}/>
           </FormControl>
-          {/* <Text as="h2" mt={4}>Destination</Text> */}
           <FormControl mt={4}>
               <FormLabel>Country</FormLabel>
               <Select placeholder='Select country' value={selectedCountry} onChange={handleCountryChange}>
