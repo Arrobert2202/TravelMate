@@ -4,10 +4,12 @@ const Schema = mongoose.Schema;
 const memberSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
   username: {
-    type: String
+    type: String,
+    required: true
   },
   unreadMessages: {
     type: Number,

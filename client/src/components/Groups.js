@@ -104,6 +104,7 @@ function Groups() {
         });
         const sortedGroups = response.data.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
         setGroups(sortedGroups);
+        console.log("groups: ", sortedGroups);
       } catch(error) {
         console.error("Error getting the groups: ", error);
         if(error.response && error.response.status === 401){

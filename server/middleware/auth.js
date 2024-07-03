@@ -4,37 +4,30 @@ require("dotenv").config();
 
 const auth = async (req, res, next) => {
   try{
-    const authHeader = req.headers.authorization;
+    const header = req.headers.authorization;
 
-    if(!authHeader){
-      return res.sendStatus(401);
+    if(!header){
+      return res.status(401).json({ message: "missing header for authorization" });
     }
     
-    const token = authHeader.split(' ')[1];
+    const token = header.split(' ')[1];
 
-    jwt.verify(token, process.env.SECRET_KEY, async (err, decoded) => {
-      if(err){
-        return res.status(401).json({
-          message: "This session has expired. Please login."
-        });
+    jwt.verify(token, process.env.SECRET_KEY, async (error, decoded) => {
+      if(error){
+        return res.status(401).json({ message: "Session expired" });
       }
 
-      const { id } = decoded;
-      const user = await User.findById(id);
+      const userId = decoded.id;
+      const user = await User.findById(userId);
       if(!user){
-        return res.status(401).json({message: "User not found"});
+        return res.status(401).json({ message: "User not found" });
       }
-      const { password, ...data } = user._doc;
-      req.user = data;
+      const { password, ...userDetails } = user._doc;
+      req.user = userDetails;
       next();
     });
   } catch (err) {
-    res.status(500).json({
-      status: "error",
-      code: 500,
-      data: [],
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 

@@ -15,6 +15,14 @@ def generate_route(attractions):
   min_lng = min(longitudes)
   max_lng = max(longitudes)
 
+  lat_buffer = (max_lat - min_lat) * 0.1
+  lng_buffer = (max_lng - min_lng) * 0.1
+
+  min_lat -= lat_buffer
+  max_lat += lat_buffer
+  min_lng -= lng_buffer
+  max_lng += lng_buffer
+
   polygon = Polygon([(min_lng, min_lat), (max_lng, min_lat), (max_lng, max_lat), (min_lng, max_lat), (min_lng, min_lat)])
 
   G = ox.graph_from_polygon(polygon, network_type='drive', simplify=True)

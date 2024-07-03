@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/userSchema');
+const Group = require('../models/groupSchema');
 const auth = require('../middleware/auth');
 const bcrypt = require('bcrypt');
 

@@ -290,6 +290,18 @@ function RatingPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedAttraction, setSelectedAttraction] = useState(null);
   const [searched, setSearched] = useState(false);
+  const [isResponsive, setIsResponsive] = useState(window.innerWidth<=823);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsResponsive(window.innerWidth <= 823);
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return() => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleEnter = async (event) => {
     if(event.keyCode === 13){
@@ -320,61 +332,56 @@ function RatingPage() {
   };
 
   return(
-    <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflow="hidden">
+    <Box display="flex" flexDirection="column" bg="#022831" minH="100vh" maxH="100vh" overflowY="auto">
       <LoggedHeader />
       <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginTop="2rem" marginRight="2rem">
         <Box display="flex" flexDirection="row">
-          <Input placeholder='Attraction' color="#D8DFE9" marginRight="1rem" value={attraction} onChange={(e) => {setAttraction(e.target.value)}} onKeyDown={handleEnter}/>
+          <Input placeholder="Attraction" color="#D8DFE9" marginRight="1rem" value={attraction} onChange={(e) => {setAttraction(e.target.value)}} onKeyDown={handleEnter}/>
           <Button 
             onClick={handleAttraction}
-            _hover={{
-              transform: "scale(1.05)",
-            }}
-            style={{
-              transition: "transform 0.3s ease",
-            }}
+            _hover={{transform: "scale(1.05)"}}
+            style={{transition: "transform 0.3s ease"}}
           >
             Search
           </Button>
         </Box>
         <Button
           onClick={onOpen}
-          _hover={{
-            transform: "scale(1.05)",
-          }}
-          style={{
-            transition: "transform 0.3s ease",
-          }}
+          _hover={{transform: "scale(1.05)"}}
+          style={{transition: "transform 0.3s ease"}}
+          marginLeft="1rem"
         >
           Add rating
         </Button>
         <RatingModal isOpen={isOpen} onClose={onClose} token={token} handleTokenExpired={handleTokenExpired}/>
       </Box>
-      <Box display="flex" marginTop="3rem" marginLeft="2rem" marginRight="2rem">
-        <Box flex="1" marginRight="2rem" maxWidth="35%">
+      <Box display="flex" flexDirection={isResponsive ? "column" : "row"} marginTop="3rem" marginLeft="2rem" marginRight="2rem">
+        <Box flex="1" marginRight="2rem" maxWidth={isResponsive ? "100%" : "35%"} marginBottom={isResponsive ? "2rem" : "0"}>
           <Heading color="#D8DFE9" marginBottom="2rem">Search results</Heading>
-          {searchResults.length > 0 ? (
-            searchResults.map((result, index) => (
-              <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
-                <Text color="#D8DFE9">{result.attraction}</Text>
-              </Box>
-            ))
-          ) : (
-            searched && <Text color="#D8DFE9">No results found</Text>
-          )}
+          <Box maxHeight={isResponsive ? "calc(3*5em)" : "auto"} overflowY="auto">
+            {searchResults.length > 0 ? (
+              searchResults.map((result, index) => (
+                <Box key={index} background="transparent" p="1rem" mb="1rem" borderRadius="0.5rem" border="1px solid #D8DFE9" cursor="pointer" onClick={() => handleSelectAttraction(result)}>
+                  <Text color="#D8DFE9">{result.attraction}</Text>
+                </Box>
+              ))
+            ) : (
+              searched && <Text color="#D8DFE9">No results found</Text>
+            )}
+          </Box>
         </Box>
-        <Box display="flex" flex="1" justifyContent="center" alignItems="center">
-          {selectedAttraction && (
-            <Box>
-              <Heading color="#D8DFE9" marginBottom="1rem">{selectedAttraction.attraction}</Heading>
-              <Flex align="center" color="#D8DFE9" marginBottom="1rem">
-                <Heading color="#D8DFE9" marginRight="0.5rem"><b>Rating:</b> {selectedAttraction.rating}</Heading>
-                <FaStar color="#FFD700" size="2rem" />
-              </Flex>
-              <WordCloudComponent wordMap={selectedAttraction.description} />
+        {selectedAttraction && (
+          <Box display="flex" flex="1" flexDirection="column">
+            <Heading color="#D8DFE9" marginBottom="1rem">{selectedAttraction.attraction}</Heading>
+            <Flex align="center" color="#D8DFE9" marginBottom="1rem">
+              <Heading color="#D8DFE9" marginRight="0.5rem"><b>Rating:</b> {selectedAttraction.rating}</Heading>
+              <FaStar color="#FFD700" size="2rem" />
+            </Flex>
+            <Box maxWidth="700px" width="100%" maxHeight="500px" height="100%" marginBottom="1rem">
+              <WordCloudComponent wordMap={selectedAttraction.description}/>
             </Box>
-          )}
-        </Box>
+          </Box>
+        )}
       </Box>
     </Box>
   );

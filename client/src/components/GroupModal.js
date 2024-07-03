@@ -227,6 +227,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
     setSelectedCountry(country);
     setSelectedState('');
     setSelectedCity('');
+    setAccomodationAddress('');
     fetchStates(country);
   };
 
@@ -234,11 +235,13 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
     const state = e.target.value;
     setSelectedState(state);
     setSelectedCity('');
+    setAccomodationAddress('');
     fetchCities(selectedCountry, state);
   };
 
   const handleCityChange = (e) => {
     setSelectedCity(e.target.value);
+    setAccomodationAddress('');
   };
 
   const handleAddMember = async () => {
@@ -256,7 +259,7 @@ export const GroupModal = ({isOpen, onClose, isEditing, token, handleTokenExpire
       });
       
       if(response.data.exists) {
-        setMembers([...members, { userId: response.data.userId, username: memberName}]);
+        setMembers([...members, { userId: response.data.userId, username: memberName, unreadMessages: 0}]);
         setMemberName('');
         setMemberError('');
       } else {

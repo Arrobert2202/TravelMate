@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 const supabase = require('../middleware/supabase');
 const { decode } = require('base64-arraybuffer');
 const upload = require('../middleware/multerConfig');
+const { ObjectId } = require('mongoose').Types;
 
 router.post('/create', auth, async (req, res) => {
   const { name, country, state, city, address, coordinates, members, message, admins } = req.body;
@@ -103,13 +104,34 @@ router.get('/:id', auth, async (req, res) => {
 router.post('/:id/update', auth, async (req, res) => {
   const groupId = req.params.id;
   const { name, destination, location, members, admins } = req.body;
-  const updatedGroup = { name, destination, location, members, admins };
+  const updatedGroupData = { name, destination, location, members, admins };
   try{
-    const group = await Group.findByIdAndUpdate( groupId, { $set: updatedGroup}, {new: true, runValidators: true});
+    console.log("members: ", members);
+    const group = await Group.findById(groupId);
     if(!group){
       return res.status(404).json({ error: 'Group not found'});
     }
-    res.status(200).json(group);
+
+    const newMembers = members.filter(newMember => !group.members.some(member => member.userId === newMember.userId));
+    const usersToRemoveGroup = group.members.filter(member => !members.some(newMember => newMember.userId === member.userId)).map(member => new ObjectId(member.userId));
+
+    await User.updateMany(
+      { _id: { $in: usersToRemoveGroup }},
+      { $pull: { groups: groupId }}
+    );
+
+    const usersToAddGroup = newMembers.map(newMember => new ObjectId(newMember.userId));
+    await User.updateMany(
+      { _id: { $in: usersToAddGroup }},
+      { $addToSet: { groups: groupId }}
+    );
+
+    const updatedGroup = await Group.findByIdAndUpdate( groupId, { $set: updatedGroupData}, {new: true, runValidators: true});
+    if(!updatedGroup){
+      return res.status(404).json({ error: 'Group not found'});
+    }
+
+    res.status(200).json(updatedGroup);
   } catch (error){
     console.error(error);
     res.status(500).json({ error: `Failed to get group with id:${groupId}.` });

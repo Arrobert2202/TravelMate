@@ -15,14 +15,15 @@ function WordCloudComponent({wordMap}) {
       weightFactor: 20,
       fontFamily: 'Times, serif',
       rotateRatio: 0.5,
-      shape: 'square',
-      rotationSteps: 2
+      rotationSteps: 2,
+      drawOutOfBound: false,  
+      shrinkToFit: true
     });
   }
   }, [wordMap]);
 
   return(
-    <canvas ref={canvasRef} width={600} height={400}/>
+    <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }}/>
   );
 };
 

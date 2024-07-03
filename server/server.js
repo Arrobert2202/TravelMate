@@ -13,7 +13,7 @@ const userRoutes = require("./routes/users");
 const topdestinationsRoutes = require("./routes/destination");
 const groupRoutes = require("./routes/groups");
 const ratingRoute = require("./routes/rating");
-const socketAuth = require("./middleware/socket");
+const socketAuthenticate = require("./middleware/socket");
 
 const app = express();
 const server = http.createServer(app);
@@ -35,7 +35,7 @@ app.use('/api/destination', topdestinationsRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/attraction', ratingRoute);
 
-io.use(socketAuth);
+io.use(socketAuthenticate);
 
 io.on('connection', (socket) => {
   console.log("New user connected", socket.username);

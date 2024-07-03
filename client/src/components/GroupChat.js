@@ -4,9 +4,10 @@ import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
 import { LoggedHeader } from './Header';
 import api from '../api';
-import { Box, Heading, Text, Card, CardBody, Input, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, Image, List, ListItem, ListIcon, Spinner } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, CardBody, Input, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalHeader, Image, List, ListItem, ListIcon, IconButton, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
 import { GroupModal } from './GroupModal';
-import { SpinnerIcon } from "@chakra-ui/icons";
+import { SpinnerIcon, HamburgerIcon } from "@chakra-ui/icons";
+
 
 const MessageBox = ( message, index) =>{
   //console.log(message);
@@ -259,6 +260,7 @@ function GroupChat() {
   const [ unreadMessages, setUnreadMessages ] = useState(false);
   const [ isAdmin, setIsAdmin] = useState(false);
   const { isOpen: isOpenMemberModal, onOpen: onOpenMemberModal, onClose: onCloseMemberModal } = useDisclosure();
+  const [isResponsive, setIsResponsive] = useState(window.innerWidth<=904);
 
   useEffect(() => {
     const fetchData = async() => {
@@ -329,6 +331,17 @@ function GroupChat() {
       scrollToBottom();
     }
   }, [messages, unreadMessages]);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsResponsive(window.innerWidth <= 904);
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return() => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const fetchMoreMessages = async() => {
     if (!existMoreMessages) return;
@@ -431,90 +444,89 @@ function GroupChat() {
         <LoggedHeader />
         {group ? (
           <>
-            <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginTop="2rem" marginRight="2rem">
+          <Box display="flex" flexDirection="row" justifyContent="space-between" marginLeft="2rem" marginTop="2rem" marginRight="2rem">
               <Box display="flex" flexDirection="row">
-                <Heading as="h3" color="#D8DFE9" marginRight="1rem">{group.name}</Heading>
-                <Button
-                  onClick={onOpenAttractionsModal}
-                  _hover={{
-                    transform: "scale(1.05)",
-                  }}
-                  style={{
-                    transition: "transform 0.3s ease",
-                  }}
-                  marginRight="1rem"
-                >
-                  Attractions
-                </Button>
-                <Button
-                  onClick={onOpenAttractionsRouteModal}
-                  _hover={{
-                    transform: "scale(1.05)",
-                  }}
-                  style={{
-                    transition: "transform 0.3s ease",
-                  }}
-                >
-                  Attractions Route
-                </Button>
-                <AttractionsModal city = {group.destination.city} isOpen = {isOpenAttractionsModal} onClose={onCloseAttractionsModal} token={token} handleTokenExpired={handleTokenExpired}/>
-                <AttractionsRouteModal city = {group.destination.city} isOpen = {isOpenAttractionsRouteModal} onClose={onCloseAttractionsRouteModal} token={token} handleTokenExpired={handleTokenExpired}/>
-              </Box>
-              <Box display="flex" flexDirection="row">
-                <Button
-                  onClick={onOpenMemberModal}
-                  _hover={{
-                    transform: "scale(1.05)",
-                  }}
-                  style={{
-                    transition: "transform 0.3s ease",
-                  }}
-                  marginRight="1rem"
-                >
-                  Members
-                </Button>
-                <MembersModal members={group.members} isOpen={isOpenMemberModal} onClose={onCloseMemberModal}/>
-                <Button
-                  onClick={onOpenLeaveModal}
-                  _hover={{
-                    transform: "scale(1.05)",
-                  }}
-                  style={{
-                    transition: "transform 0.3s ease",
-                  }}
-                  marginRight="1rem"
-                >
-                  Leave Group
-                </Button>
-                <LeaveGroupModal isOpen={isOpenLeaveModal} onClose={onCloseLeaveModal} groupId={groupId}/>
-                { isAdmin && (
-                  <div>
+              <Heading as="h3" color="#D8DFE9" marginRight="1rem">{group.name}</Heading>
+              {!isResponsive && (
+                <>
+                  <Button
+                    onClick={onOpenAttractionsModal}
+                    _hover={{ transform: "scale(1.05)" }}
+                    style={{ transition: "transform 0.3s ease" }}
+                    marginRight="1rem"
+                  >
+                    Attractions
+                  </Button>
+                  <Button
+                    onClick={onOpenAttractionsRouteModal}
+                    _hover={{ transform: "scale(1.05)" }}
+                    style={{ transition: "transform 0.3s ease" }}
+                    marginRight="1rem"
+                  >
+                    Attractions Route
+                  </Button>
+                </>
+              )}
+            </Box>
+            <Box display="flex" flexDirection="row">
+              {isResponsive ? (
+                <Menu>
+                  <MenuButton as={IconButton} icon={<HamburgerIcon />} />
+                  <MenuList>
+                    <MenuItem onClick={onOpenAttractionsModal}>Attractions</MenuItem>
+                    <MenuItem onClick={onOpenAttractionsRouteModal}>Attractions Route</MenuItem>
+                    <MenuItem onClick={onOpenMemberModal}>Members</MenuItem>
+                    <MenuItem onClick={onOpenLeaveModal}>Leave Group</MenuItem>
+                    {isAdmin && <MenuItem onClick={onOpenEditModal}>Edit Group</MenuItem>}
+                  </MenuList>
+                </Menu>
+              ) : (
+                <>
+                  <Button
+                    onClick={onOpenMemberModal}
+                    _hover={{ transform: "scale(1.05)" }}
+                    style={{ transition: "transform 0.3s ease" }}
+                    marginRight="1rem"
+                  >
+                    Members
+                  </Button>
+                  <Button
+                    onClick={onOpenLeaveModal}
+                    _hover={{ transform: "scale(1.05)" }}
+                    style={{ transition: "transform 0.3s ease" }}
+                    marginRight="1rem"
+                  >
+                    Leave Group
+                  </Button>
+                  {isAdmin && (
                     <Button
                       onClick={onOpenEditModal}
-                      _hover={{
-                        transform: "scale(1.05)",
-                      }}
-                      style={{
-                        transition: "transform 0.3s ease",
-                      }}
+                      _hover={{ transform: "scale(1.05)" }}
+                      style={{ transition: "transform 0.3s ease" }}
+                      marginRight="1rem"
                     >
-                      Edit group
+                      Edit Group
                     </Button>
-                    <GroupModal isOpen={isOpenEditModal} onClose={onCloseEditModal} isEditing={true} token={token} handleTokenExpired={handleTokenExpired} socket={socket} group={group}/>
-                </div>
-                )}
-              </Box>
+                  )}
+                </>
+              )}
             </Box>
-            <Box id="chatbox" flex={1} p="2rem" m="2rem" marginTop="2rem" border="1px solid #D8DFE9" borderRadius="8px" overflowY="auto" onScroll={handleScroll}>
-              {messages.map((message, index) => MessageBox(message, index))}
-              <div ref={messagesEndRef} />
-            </Box>
-            <Box display="flex" flexDirection="row" p="2rem">
-              <Input placeholder='Message' color="#D8DFE9" value={newMessage} onChange={(e) => {setNewMessage(e.target.value)}} onKeyDown={handleEnter}/>
-              <Input type="file" accept="image/*" onChange={(e) => {setImage(e.target.files[0])}} color="#D8DFE9" width="23%"/>
-              <Button onClick={() => handleNewMessage()}>Send</Button>
-            </Box>
-          </>
+          </Box>
+          <Box id="chatbox" flex={1} p="2rem" m="2rem" marginTop="2rem" border="1px solid #D8DFE9" borderRadius="8px" overflowY="auto" onScroll={handleScroll}>
+            {messages.map((message, index) => MessageBox(message, index))}
+            <div ref={messagesEndRef} />
+          </Box>
+          <Box display="flex" flexDirection="row" p="2rem">
+            <Input placeholder='Message' color="#D8DFE9" value={newMessage} onChange={(e) => {setNewMessage(e.target.value)}} onKeyDown={handleEnter}/>
+            <Input type="file" accept="image/*" onChange={(e) => {setImage(e.target.files[0])}} color="#D8DFE9" width="23%"/>
+            <Button onClick={() => handleNewMessage()}>Send</Button>
+          </Box>
+          <AttractionsModal city={group.destination.city} isOpen={isOpenAttractionsModal} onClose={onCloseAttractionsModal} token={token} handleTokenExpired={handleTokenExpired}/>
+          <AttractionsRouteModal city={group.destination.city} isOpen={isOpenAttractionsRouteModal} onClose={onCloseAttractionsRouteModal} token={token} handleTokenExpired={handleTokenExpired}/>
+          <MembersModal members={group.members} isOpen={isOpenMemberModal} onClose={onCloseMemberModal}/>
+          <LeaveGroupModal isOpen={isOpenLeaveModal} onClose={onCloseLeaveModal} groupId={groupId}/>
+          <GroupModal isOpen={isOpenEditModal} onClose={onCloseEditModal} isEditing={true} token={token} handleTokenExpired={handleTokenExpired} socket={socket} group={group}/>
+        </>
         ) : (
           <Text color="#D8DFE9">Loading...</Text>
         )}

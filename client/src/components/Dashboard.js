@@ -39,7 +39,7 @@ function Dashboard() {
     <Box display="flex" flexDirection="column" bg="#022831" minH="100vh">
       {token ? <LoggedHeader /> : <Header />}
       <Box display="flex" flexDirection="column" justifyContent="space-around" width="100%" maxW="100%" flexGrow={1}>
-        <Box padding={"2rem"} marginTop={"2rem"} width="43%">
+        <Box padding={"2rem"} marginTop={"2rem"} width="44%">
           <Heading as="h1" color="#D8DFE9">Welcome to ExploreTogether!</Heading>
           <Text paddingTop={"1rem"} color="#D8DFE9">Join us and discover amazing destinations, connect with fellow travelers, plan your next adventure, and create unforgettable memories. Start exploring today!</Text>
         </Box>
